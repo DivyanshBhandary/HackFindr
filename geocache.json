@@ -268,6 +268,251 @@
     21.1498134,
     79.0820556
   ],
+  "jamshedpur, jharkhand": [
+    22.8015194,
+    86.2029579
+  ],
+  "faridabad, haryana": [
+    28.4031478,
+    77.3105561
+  ],
+  "hamirpur, himachal pradesh": [
+    31.6539866,
+    76.5403633
+  ],
+  "niwai, rajasthan": [
+    26.3593233,
+    75.9251042
+  ],
+  "gandhinagar, gujarat": [
+    23.2232877,
+    72.6492267
+  ],
+  "pimpri-chinchwad, maharashtra": [
+    18.6279288,
+    73.8009829
+  ],
+  "patiala, punjab": [
+    30.2092778,
+    76.3397231
+  ],
+  "noida, uttar pradesh": [
+    28.5706333,
+    77.3272147
+  ],
+  "kharghar, maharashtra": [
+    19.0525298,
+    73.0735111
+  ],
+  "anekal, karnataka": [
+    12.7103145,
+    77.6886188
+  ],
+  "ahmedabad, gujarat": [
+    23.0215374,
+    72.5800568
+  ],
+  "bhagalpur, bihar": [
+    25.2861354,
+    87.1304229
+  ],
+  "mysuru, karnataka": [
+    12.3041464,
+    76.6529521
+  ],
+  "prayagraj (allahabad), uttar pradesh": [
+    25.4381302,
+    81.8338005
+  ],
+  "guntur, andhra pradesh": [
+    16.2915189,
+    80.4541588
+  ],
+  "lavasa, maharashtra": [
+    18.4045968,
+    73.5041748
+  ],
+  "mandsaur, madhya pradesh": [
+    24.2628148,
+    75.385692
+  ],
+  "burla, odisha": [
+    21.393393,
+    83.9264804
+  ],
+  "rupnagar, punjab": [
+    31.0917102,
+    76.5289701
+  ],
+  "palwal, haryana": [
+    28.0599426,
+    77.3223422
+  ],
+  "ssm cultural centre": null,
+  "new york, ny": [
+    40.7127281,
+    -74.0060152
+  ],
+  "online, from anywhere": null,
+  "from anywhere": [
+    52.3077987,
+    0.252123
+  ],
+  "block 45, sharda university,": null,
+  "the northcap university": [
+    28.5042198,
+    77.0490109
+  ],
+  "jaipur": [
+    26.9154576,
+    75.8189817
+  ],
+  "ফেনী, bangladesh": [
+    23.0068161,
+    91.3965276
+  ],
+  "vit bhopal university": [
+    23.0755086,
+    76.8497778
+  ],
+  "bukit sion highschool": null,
+  "centro de enseñanza técnica y superior": [
+    32.652987,
+    -115.402035
+  ],
+  "qualcomm institute, uc san diego": null,
+  "uc san diego": [
+    32.7724979,
+    -117.1880314
+  ],
+  "kupittaa campus, turku": null,
+  "turku": [
+    60.4515932,
+    22.2669991
+  ],
+  "bayview yards": [
+    45.409741,
+    -75.7281315
+  ],
+  "tully community branch library": [
+    37.3113892,
+    -121.8408783
+  ],
+  "aggie square": [
+    38.5497328,
+    -121.4512042
+  ],
+  "heafey hall": [
+    37.803376,
+    -122.188022
+  ],
+  "mcmaster university - pgcll": null,
+  "sei building": [
+    3.6349174,
+    98.7061299
+  ],
+  "sheridan college hazel mccallion campus": [
+    43.5911998,
+    -79.6480973
+  ],
+  "university of calgary": [
+    51.075054,
+    -114.138805
+  ],
+  "builders club": [
+    29.7081842,
+    -95.4712669
+  ],
+  "san francisco, california, usa": [
+    37.7879363,
+    -122.4075201
+  ],
+  "south plainfield library": [
+    40.5837594,
+    -74.4157082
+  ],
+  "darrin communications center": [
+    42.7291159,
+    -73.6793075
+  ],
+  "healey family student center": [
+    38.9063379,
+    -77.0737581
+  ],
+  "volkshochschule": [
+    51.4548676,
+    7.0135673
+  ],
+  "vancouver, canada": [
+    49.2608724,
+    -123.113952
+  ],
+  "university of california - jacobs hall": null,
+  "dow theatre": [
+    30.7220909,
+    -88.1128154
+  ],
+  "unc charlotte - woodward hall room 106": null,
+  "1819 innovation hub": [
+    39.1324041,
+    -84.4969994
+  ],
+  "wpi - campus center": null,
+  "meadowlands exposition center + online": null,
+  "wwu - kaiser borsari building": null,
+  "university of windsor": [
+    42.3051498,
+    -83.0664983
+  ],
+  "uc riverside - winston chung hall": null,
+  "singapore": [
+    1.357107,
+    103.8194992
+  ],
+  "spring house workspaces shgu001": null,
+  "central michigan university pearce hall": null,
+  "pleasanton, ca": [
+    37.6624312,
+    -121.8746789
+  ],
+  "ucf downtown": null,
+  "austin, tx, usa": [
+    30.2649261,
+    -97.7474086
+  ],
+  "1435 capital": [
+    55.6806151,
+    12.6053078
+  ],
+  "the woodlands secondary school": [
+    43.5625772,
+    -79.6468748
+  ],
+  "pennovation works": [
+    39.940958,
+    -75.1995548
+  ],
+  "msu - stem building": null,
+  "eitc building, university of manitoba": null,
+  "university of manitoba": [
+    49.9042395,
+    -97.1617229
+  ],
+  "albuquerque, nm, usa": [
+    35.0841034,
+    -106.650985
+  ],
+  "rpi dcc": null,
+  "kent state university - di hub": null,
+  "caroline graveson building": [
+    51.4761354,
+    -0.038617
+  ],
+  "cincinnati, oh, usa": [
+    39.1012809,
+    -84.5127405
+  ],
+  "towson cyber center (10 west)": null,
   "bhopal, madhya pradesh": [
     23.2584857,
     77.401989
@@ -288,206 +533,6 @@
     27.1752554,
     78.0098161
   ],
-  "kharghar, maharashtra": [
-    19.0525298,
-    73.0735111
-  ],
-  "new york": [
-    40.7127281,
-    -74.0060152
-  ],
-  "calgary, alberta": [
-    51.0456064,
-    -114.057541
-  ],
-  "mississauga, ontario": [
-    43.5884727,
-    -79.643658
-  ],
-  "kitchener, ontario": [
-    43.451291,
-    -80.4927815
-  ],
-  "rochester, new york": [
-    43.157285,
-    -77.615214
-  ],
-  "edinburgh, edinburgh": [
-    55.9519018,
-    -3.1904199
-  ],
-  "cincinnati , ohio": [
-    39.1012809,
-    -84.5127405
-  ],
-  "vancovuer, british columbia": null,
-  "british columbia": [
-    55.001251,
-    -125.002441
-  ],
-  "college station, texas": [
-    30.6183939,
-    -96.3455991
-  ],
-  "buffalo, northeast": [
-    45.6992585,
-    -111.0655066
-  ],
-  "salisbury, md": [
-    38.366027,
-    -75.6009964
-  ],
-  "atlanta, ga": [
-    33.7544657,
-    -84.3898151
-  ],
-  "timișoara, timiș": [
-    45.7538355,
-    21.2257474
-  ],
-  "espoo, uusimaa": [
-    60.2049651,
-    24.6559808
-  ],
-  "princeton, new jersey": [
-    40.3496953,
-    -74.6597376
-  ],
-  "brooklyn, new york": [
-    40.6526006,
-    -73.9497211
-  ],
-  "amherst, ma": [
-    42.3731948,
-    -72.5198761
-  ],
-  "arlington, texas": [
-    32.7355816,
-    -97.1071186
-  ],
-  "la jolla, ca": [
-    32.8458529,
-    -117.2575702
-  ],
-  "ypsilanti, michigan": [
-    42.241051,
-    -83.6117646
-  ],
-  "durham, county durham": [
-    54.7770139,
-    -1.5756205
-  ],
-  "tempe, arizona": [
-    33.4255117,
-    -111.940016
-  ],
-  "london, ontario": [
-    42.9836747,
-    -81.2496068
-  ],
-  "st. john's, newfoundland and labrador / avalon peninsula": null,
-  "newfoundland and labrador / avalon peninsula": [
-    47.392337,
-    -53.5253983
-  ],
-  "wellesley , massachesetts": null,
-  "massachesetts": null,
-  "boston, ma": [
-    42.3588336,
-    -71.0578303
-  ],
-  "lleida, lleida, spain": [
-    41.6147605,
-    0.6267842
-  ],
-  "sheffield, south yorkshire": [
-    53.3806626,
-    -1.4702278
-  ],
-  "manhattan, kansas": [
-    39.1836082,
-    -96.5716694
-  ],
-  "hamilton, ontario": [
-    43.2560802,
-    -79.8728583
-  ],
-  "toronto, ontario": [
-    43.6534817,
-    -79.3839347
-  ],
-  "ottawa, ontario": [
-    45.4208777,
-    -75.6901106
-  ],
-  "los angeles, ca": [
-    34.0536923,
-    -118.2427676
-  ],
-  "vancouver, british columbia": [
-    49.2608724,
-    -123.113952
-  ],
-  "alexandria, virginia": [
-    38.8051095,
-    -77.0470229
-  ],
-  "missisauga, ontario": [
-    43.6263043,
-    -79.6765075
-  ],
-  "washington, dc": [
-    38.8950982,
-    -77.0363849
-  ],
-  "providence, ri": [
-    41.8239891,
-    -71.4128343
-  ],
-  "athens , georgia": [
-    33.9597677,
-    -83.376398
-  ],
-  "raleigh, north carolina": [
-    35.7803977,
-    -78.6390989
-  ],
-  "west lafayette, indiana": [
-    40.4258686,
-    -86.9080655
-  ],
-  "east lansing, michigan": [
-    42.7320307,
-    -84.4721678
-  ],
-  "san francisco, ca": [
-    37.7879363,
-    -122.4075201
-  ],
-  "clemson, sc": [
-    34.6850749,
-    -82.8364111
-  ],
-  "urbana, illinois": [
-    40.1117174,
-    -88.207301
-  ],
-  "a coruña, a coruña": [
-    43.3454621,
-    -8.4138519
-  ],
-  "cincinnati, ohio": [
-    39.1012809,
-    -84.5127405
-  ],
-  "ahmedabad, gujarat": [
-    23.0215374,
-    72.5800568
-  ],
-  "pimpri-chinchwad, maharashtra": [
-    18.6279288,
-    73.8009829
-  ],
   "thane, maharashtra": [
     19.3653598,
     73.3685437
@@ -500,33 +545,13 @@
     29.391272,
     76.9771681
   ],
-  "lavasa, maharashtra": [
-    18.4045968,
-    73.5041748
-  ],
-  "mandsaur, madhya pradesh": [
-    24.2628148,
-    75.385692
-  ],
   "kunnamangalam, kerala": [
     11.3046779,
     75.8785617
   ],
-  "burla, odisha": [
-    21.393393,
-    83.9264804
-  ],
   "ranchi, jharkhand": [
     23.3700501,
     85.3250387
-  ],
-  "patiala, punjab": [
-    30.2092778,
-    76.3397231
-  ],
-  "irvington high school": [
-    40.7291051,
-    -74.2344366
   ],
   "myladi, kerala": [
     11.0984287,
@@ -536,68 +561,104 @@
     11.3639378,
     77.8354768
   ],
-  "hamirpur, himachal pradesh": [
-    31.6539866,
-    76.5403633
+  "unc charlotte - mceniry hall room 124": null,
+  "north guwahati, assam": [
+    26.2469085,
+    91.7144048
   ],
-  "miami, fl": [
-    25.7741566,
-    -80.1935973
+  "mohali, punjab": [
+    30.6908804,
+    76.7114879
   ],
-  "turku, varsinais-suomi": [
-    60.4515932,
-    22.2669991
+  "svai hub": null,
+  "irvington high school": [
+    40.7291051,
+    -74.2344366
   ],
-  "peterborough, ontario": [
-    44.3048009,
-    -78.3199496
+  "mcvey data science building": [
+    39.5114849,
+    -84.7341639
   ],
-  "york pa, pa": [
-    39.962493,
-    -76.7276989
+  "fiji": [
+    -18.1239696,
+    179.0122737
   ],
-  "richardson, texas": [
-    32.9481789,
-    -96.7297206
+  "brighton": [
+    50.8214626,
+    -0.1400561
   ],
-  "new york, new york": [
-    40.7127281,
-    -74.0060152
+  "trent university student centre": null,
+  "university of texas at austin": [
+    30.2851494,
+    -97.7339352
   ],
-  "troy, new york": [
-    42.7284117,
-    -73.6917878
+  "system hq": [
+    37.5243177,
+    -77.4686974
   ],
-  "new brunswick, new jersey": [
-    40.4936119,
-    -74.4436416
+  "tum audimax": null,
+  "university of texas at dallas - ecsw": null,
+  "mixpanel hq": null,
+  "golisano college of computing @ rit": null,
+  "sunnyvale": [
+    37.3688301,
+    -122.036349
   ],
-  "newark, delaware": [
-    39.6828358,
-    -75.7515682
+  "milpitas, bay area + online": null,
+  "bay area + online": null,
+  "launch fishers": [
+    39.9668264,
+    -86.008385
   ],
-  "kent, ohio": [
-    41.1513108,
-    -81.3578047
+  "virginia tech - dds": null,
+  "qualcomm conference room": null,
+  "visakhapatnam, andhra pradesh": [
+    17.6935526,
+    83.2921297
   ],
-  "la jolla, california": [
-    32.8458529,
-    -117.2575702
+  "bidhannagar, west bengal": [
+    22.590425,
+    88.41692
   ],
-  "montreal, quebec": [
-    45.5031824,
-    -73.5698065
+  "chang wat chiang mai": [
+    18.628602,
+    98.9006043
   ],
-  "lawrence, kansas": [
-    38.9719137,
-    -95.2359403
+  "erode, tamil nadu": [
+    11.4905282,
+    77.3505274
   ],
-  "richardson, tx": [
-    32.9481789,
-    -96.7297206
+  "pondicherry, puducherry": [
+    11.9340568,
+    79.8306447
   ],
-  "los angeles, california": [
-    34.0536923,
-    -118.2427676
+  "coimbatore, tamil nadu": [
+    11.0018115,
+    76.9628425
+  ],
+  "madurai, tamil nadu": [
+    9.9261153,
+    78.1140983
+  ],
+  "mayiladuthruai, tamil nadu": null,
+  "tamil nadu": [
+    11.3323723,
+    78.6098639
+  ],
+  "pollachi, tamil nadu": [
+    10.6588234,
+    77.00873
+  ],
+  "kakinada, andhra pradesh": [
+    16.9437385,
+    82.2350607
+  ],
+  "sathyamangalam, erode, tamil nadu": [
+    11.5523741,
+    77.2653758
+  ],
+  "tiruchirappalli": [
+    10.8071144,
+    78.6880939
   ]
 }

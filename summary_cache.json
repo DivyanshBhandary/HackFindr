@@ -689,14 +689,24 @@
     "eligibility": "Students from all years and disciplines, as well as registered startups and companies.",
     "requirements": "An innovative startup idea (for students) or an existing business (for companies); prize winners must agree to form a company and undergo incubation at UIH."
   },
-  "unstop-5614ec50": {
-    "description": "GOA BUILDATHON ’27 is a 36-hour offline hackathon in Goa designed for students to turn their ideas into working prototypes. It offers a collaborative space to experiment with AI, web development, and emerging technologies while learning from experienced builders.",
-    "eligibility": "Students, aspiring developers, designers, AI builders, and technology enthusiasts.",
-    "requirements": "Technical curiosity, a willingness to collaborate, and physical attendance in Goa."
+  "unstop-779ecc60": {
+    "description": "This hands-on workshop teaches you how to integrate AI into every stage of filmmaking, from scriptwriting to post-production. You will gain practical experience with industry tools like Midjourney and Runway to create your own AI-driven short film.",
+    "eligibility": "Students from any academic stream, filmmakers, creators, and AI enthusiasts of all expertise levels.",
+    "requirements": "No prior expertise required; suitable for all skill levels."
   },
-  "unstop-840636ff": {
-    "description": "Hack-a-Sol 5.0 is a 36-hour national-level hackathon hosted by IIIT Naya Raipur, focusing on solving real-world challenges using technologies like AI, ML, and Cybersecurity. It offers students a unique opportunity to collaborate with peers, receive industry mentorship, and transform innovative ideas into functional solutions.",
-    "eligibility": "Students, developers, and designers from colleges and universities across India.",
-    "requirements": "Teams of 2 to 4 members."
+  "unstop-fc12a55b": {
+    "description": "Fr.CRCE Shark Tank is an entrepreneurship competition where students pitch business ideas in a mock investment simulation. Participants will face real-world investor questions, negotiate equity, and defend their business models to compete for a ₹60,000 prize pool.",
+    "eligibility": "All undergraduate college students (excluding Fr.CRCE students).",
+    "requirements": "Teams of 2-4 members, ₹149 registration fee, formal/product-themed attire, and a pitch deck."
+  },
+  "unstop-01c217a7": {
+    "description": "This one-day, in-person workshop at IIT Bombay provides a comprehensive introduction to cybersecurity, covering topics from networking basics and Splunk analysis to data protection laws. Students will engage in hands-on labs and a live, team-based cyberattack response exercise to gain practical experience. It is an ideal opportunity for students of all backgrounds to explore the field and earn a certificate of participation.",
+    "eligibility": "All undergraduate and postgraduate students across all specializations (technical and non-technical).",
+    "requirements": "Basic familiarity with computers; individual registration."
+  },
+  "knowafest-8120736f": {
+    "description": "This two-day national-level seminar explores the use of deep learning and multi-omics to identify cancer biomarkers through non-invasive liquid biopsy platforms. It focuses on advanced computational approaches for improving cancer detection methods.",
+    "eligibility": "Not specified",
+    "requirements": "Not specified"
   }
 }

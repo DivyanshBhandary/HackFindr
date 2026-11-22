@@ -1,12 +1,26 @@
+---
+title: HackFindr
+emoji: 🎓
+colorFrom: purple
+colorTo: pink
+sdk: gradio
+sdk_version: 6.30.0
+python_version: "3.12"
+app_file: app.py
+pinned: false
+license: mit
+short_description: Find student events near you with Gemma 4
+---
+
 # HackFindr: built with Gemma 4
 
-HackFindr finds upcoming student events (hackathons, ideathons, webinars, workshops, competitions, conferences)
-from **Unstop, Devpost, Devfolio, HackerEarth, MLH, Eventbrite and college club pages** (refreshed automatically every 6 hours while the app runs), filters them by distance from your city, and shows them on a map.
+HackFindr finds upcoming student events (hackathons, ideathons, webinars, workshops, competitions, conferences,
+quizzes, coding contests) from **Unstop, Devpost, Devfolio, KnowAFest, Hack2skill, HackerEarth, Codeforces and MLH**, filters them by distance from your city, and shows them on a map.
 
 It is built with **Gemma 4 (`gemma-4-26b-a4b-it`) through the Gemini API** (`google-genai`). Gemma:
 - summarizes each Unstop event page into a short description, eligibility and requirements,
 - reads a photo of an **event poster** and adds that event to the map (the demo highlight),
-- powers an **agent with tools**: ask "hackathons within 200 km of Raipur".
+- answers questions about an event in a small **chat** on its details page.
 
 ![screenshot](docs/screenshot.png)
 
@@ -19,20 +33,24 @@ python -m venv .venv
 pip install -r requirements.txt
 copy .env.example .env            # then put your GEMINI_API_KEY in .env
 python events.py                  # optional: fetch fresh events into events.json
-python app_template/app.py        # open http://127.0.0.1:7860
+python app.py                     # open http://127.0.0.1:7860
 ```
-To open it from a phone or laptop on the same Wi-Fi, start it with `python app_template/app.py --lan`
+To open it from a phone or laptop on the same Wi-Fi, start it with `python app.py --lan`
 and open the second address it prints (like `http://10.50.33.81:7860`). Allow Python through the Windows firewall if asked.
 
 If the internet or an API is down, the app uses the saved `events.json` (offline demo mode).
 
+## Website mode
+Set `HACKFINDR_PUBLIC=1` (and `GEMINI_API_KEY` as a secret) on the host. This hides manual fetching, refreshes
+events in the background every 6 hours, and limits Gemma use per visitor and per day. Set `HACKFINDR_DATA_DIR` to
+a persistent folder if the host has one; otherwise new summaries and poster events reset when the server restarts.
+
 ## How it works
 | File | What it does |
 |---|---|
-| `clubs.json` | college club pages to read (`name`, `url`, `city`). Gemma pulls the dated events out of each page. Pages that need JavaScript have no readable text |
-| `events.py` | fetch Unstop, Devpost, Devfolio, HackerEarth, MLH, Eventbrite, club pages (auto-refresh every `REFRESH_HOURS`), normalize to one schema, geocode cities (cached in `geocache.json`), Gemma summaries (cached in `summary_cache.json`), save `events.json` |
-| `harness/tools.py` | agent tools `search_events(city, radius_km, mode, event_type)` and `get_event_details(event_id)` |
-| `app_template/app.py` | Gradio UI: **Events Map** tab (folium map, online-events table, poster upload) and **Agent with tools** tab |
+| `events.py` | fetch every source in `SOURCES` (in website mode, auto-refresh every `REFRESH_HOURS`), normalize to one schema, geocode cities (cached in `geocache.json`), Gemma summaries (cached in `summary_cache.json`), save `events.json` |
+| `harness/tools.py` | event search and distance filter used by the map |
+| `app_template/app.py` | Gradio UI: folium map, event list, details page with AI chat, poster upload |
 | `gemma_client.py` | the starter's Gemma 4 helper (spacing, retries, cache) |
 | `skills/hackfindr/SKILL.md` | agent skill describing how to use the tools |
 
