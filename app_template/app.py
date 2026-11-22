@@ -142,10 +142,14 @@ def chip_match(ev, chip, saved=()):
     return True
 
 
-def find_events(city, radius, chip, sort, saved=()):
-    """Offline events near the city first, then online ones, filtered by the chip."""
+def find_events(city, radius, chip, sort, saved=(), query=""):
+    """Offline events near the city first, then online ones, filtered by the chip and the title search."""
     lat, lon, near, online = filter_events(city, int(radius))
     found = [e for e in near + online if chip_match(e, chip, saved)]
+    words = str(query or "").lower().split()
+    if words:   # every word must appear in the title or organiser
+        text = lambda e: (str(e.get("title") or "") + " " + str(e.get("organiser") or "")).lower()
+        found = [e for e in found if all(w in text(e) for w in words)]
     if sort == "Closing soon":
         found.sort(key=lambda e: days_left(e) if days_left(e) is not None else 9999)
     return lat, lon, found
@@ -232,6 +236,19 @@ def card_html(ev):
             f'<div class="ce-card-title">{esc(ev["title"])}</div>'
             f'<div class="ce-meta">{meta_line(ev, with_closes=False)}</div>{summary_html}'
             f'<div class="ce-tags">{tags_html(ev)}</div></div>{star}<span class="ce-chev" aria-hidden="true">›</span>')
+
+
+def deadline_strip(found):
+    """Events whose registration closes within 7 days, soonest first."""
+    soon = sorted((e for e in found if days_left(e) is not None and 0 <= days_left(e) <= 7), key=days_left)[:10]
+    if not soon:
+        return ""
+    def item(e):
+        left = days_left(e)
+        when = "today" if left == 0 else f"{left}d"
+        return (f'<button class="ce-dl{" hot" if left <= 2 else ""}" data-id="{esc(e["id"])}">'
+                f'<b>{when}</b>{esc(e["title"])}</button>')
+    return f'<div class="ce-strip"><span class="ce-strip-label">Closing this week</span>{"".join(item(e) for e in soon)}</div>'
 
 
 def bullets(text):
@@ -356,22 +373,22 @@ def saved_ids(saved):
     return {str(i) for i in ids} if isinstance(ids, list) else set()
 
 
-def show_events(city, radius, chip, sort, fetch_count=None, saved="[]", *args):
-    """Redraw the map and the card list."""
-    lat, lon, found = find_events(city, radius, chip, sort, saved_ids(saved))
+def show_events(city, radius, chip, sort, fetch_count=None, saved="[]", query="", *args):
+    """Redraw the map, the card list and the deadline strip."""
+    lat, lon, found = find_events(city, radius, chip, sort, saved_ids(saved), query)
     if lat is None:
         return (f"<p class='ce-error'>Couldn't find the city “{esc(city)}”. Check the spelling or try a bigger city nearby.</p>",
-                [], "No events", PAGE)
+                [], "No events", PAGE, "")
     near = sum(1 for e in found if e.get("distance_km") is not None)
     header = f"**{near}** nearby · **{len(found) - near}** online"
-    return map_html(lat, lon, int(radius), found), found, header, PAGE
+    return map_html(lat, lon, int(radius), found), found, header, PAGE, deadline_strip(found)
 
 
-def refresh(city, radius, chip, sort, fetch_count=DEFAULT_FETCH_COUNT, saved="[]", *args):
+def refresh(city, radius, chip, sort, fetch_count=DEFAULT_FETCH_COUNT, saved="[]", query="", *args):
     if not PUBLIC:   # on the website a background job fetches, so visitors cannot overload the sources
         events.refresh_events(limit=int(fetch_count))  # live fetch with selected event count
         gr.Info("Live events fetched.")
-    return show_events(city, radius, chip, sort, fetch_count, saved)
+    return show_events(city, radius, chip, sort, fetch_count, saved, query)
 
 
 def ics_file(ev):
@@ -491,6 +508,53 @@ def ask_about_event(question, history, event_id, request: gr.Request = None):
             return
 
 
+def ask_gemma(prompt, rule):
+    """One short Gemma answer (not streamed), with the same quick 'minimal' thinking as the chat.
+    Like the chat it skips gemma_client's retries, so it tries once more if Google is busy."""
+    from google.genai import types
+    config = types.GenerateContentConfig(system_instruction=rule,
+                                         thinking_config=types.ThinkingConfig(thinking_level="minimal"))
+    for attempt in (1, 2):
+        try:
+            reply = gemma_client.get_client().models.generate_content(
+                model=gemma_client.MODEL, contents=prompt, config=config)
+            return (reply.text or "").strip()
+        except Exception as error:
+            if attempt == 2 or not gemma_client._is_busy(error):
+                raise
+            time.sleep(2)
+
+
+def event_facts(event_id):
+    """The parts of one event that Gemma needs to judge it, or None if the id is unknown."""
+    ev = next((e for e in events.load_events() if e["id"] == event_id), None)
+    keys = ("title", "type", "mode", "city", "is_free", "eligibility", "requirements", "team_size", "description")
+    return {k: ev.get(k) for k in keys} if ev else None
+
+
+FIT_RULE = ("You help a student decide if ONE event suits them. Use only the event details and what the student "
+            "says about themselves. First line: exactly 'Good fit', 'Maybe' or 'Not a fit' in bold. Then 2-3 short "
+            "bullet reasons. Then one line starting 'Tip:' on how to prepare. If a detail is missing, say so.")
+
+
+def fit_check(me, event_id, request: gr.Request = None):
+    """One Gemma call: does this event suit the student? Also returns the profile so the browser keeps it."""
+    me = str(me or "").strip()[:300]
+    if not me:
+        return "Write your year and skills first, for example “1st year CSE · Python”.", me
+    blocked = limit_message(request)
+    if blocked:
+        return blocked, me
+    facts = event_facts(event_id)
+    if facts is None:
+        return "Open an event first.", me
+    prompt = f"Event (JSON): {json.dumps(facts, ensure_ascii=False)}\nStudent: {me}"
+    try:
+        return ask_gemma(prompt, FIT_RULE), me
+    except Exception as error:
+        return gemma_client.describe_error(error), me
+
+
 def make_opener(event_id):
     """The click handler for one card's Details button."""
     def opener(found, request: gr.Request = None):
@@ -535,13 +599,13 @@ def extract_poster(image_path, request: gr.Request = None):
 
 
 def save_poster(title, ev_type, when, mode, city, eligibility, requirements, link,
-                map_city, radius, chip, sort, fetch_count=None, saved="[]", request: gr.Request = None):
+                map_city, radius, chip, sort, fetch_count=None, saved="[]", query="", request: gr.Request = None):
     """Save the (possibly edited) poster event to events.json and redraw."""
     if not title.strip():
-        return "The event needs a title.", *show_events(map_city, radius, chip, sort, fetch_count, saved)
+        return "The event needs a title.", *show_events(map_city, radius, chip, sort, fetch_count, saved, query)
     blocked = limit_message(request, "poster")
     if blocked:
-        return blocked, *show_events(map_city, radius, chip, sort, fetch_count, saved)
+        return blocked, *show_events(map_city, radius, chip, sort, fetch_count, saved, query)
     title, city = title[:150], city[:100]
     eligibility, requirements = eligibility[:500], requirements[:500]
     ev_mode = "online" if mode.strip().lower() == "online" else "offline"
@@ -557,7 +621,7 @@ def save_poster(title, ev_type, when, mode, city, eligibility, requirements, lin
     events.add_event(ev)
     warn = "" if ev["lat"] or ev_mode == "online" else " (city not found, so no map marker)"
     return f"Added: {ev['title']} ({ev_mode}, {ev['city'] or 'no city'}){warn}", \
-        *show_events(map_city, radius, chip, sort, fetch_count, saved)
+        *show_events(map_city, radius, chip, sort, fetch_count, saved, query)
 
 
 # ---------- look ----------
@@ -602,6 +666,13 @@ HEAD = """<style>
     var box = document.querySelector("#ce-saved textarea");
     if (box) { box.value = JSON.stringify(ids); box.dispatchEvent(new Event("input", { bubbles: true })); }
   }, true);
+  // "Closing this week" strip: a tap opens that event, the same way a map pin does
+  document.addEventListener("click", function (e) {
+    var b = e.target.closest && e.target.closest(".ce-dl[data-id]");
+    if (!b) return;
+    var box = document.querySelector("#ce-pin-id textarea");
+    if (box) { box.value = b.dataset.id + "|" + Date.now(); box.dispatchEvent(new Event("input", { bubbles: true })); }
+  });
   document.addEventListener("keydown", function (e) {
     if (e.key !== "Escape") return;
     var b = document.querySelector("#ce-back"); if (b && b.offsetParent) b.click();
@@ -659,6 +730,21 @@ CSS = """
            font-size: 19px; line-height: 1; color: var(--ce-border-2); cursor: pointer; }
 .ce-star:hover { color: var(--ce-muted); }
 .ce-star.on { color: #f5b000; }
+/* closing-this-week strip */
+#ce-strip-box { padding: 0 !important; background: transparent !important; border: none !important;
+                contain: inline-size; min-width: 0 !important; max-width: 100%; }   /* scroll inside, never widen the page */
+.ce-strip { display: flex; gap: 8px; align-items: center; overflow-x: auto; scrollbar-width: none; padding: 2px 0; }
+.ce-strip-label { font-size: 11px; font-weight: 700; letter-spacing: .05em; text-transform: uppercase;
+                  color: var(--ce-muted); white-space: nowrap; }
+.ce-dl { display: inline-flex; gap: 7px; align-items: center; white-space: nowrap; font-size: 13px; cursor: pointer;
+         background: var(--ce-card); border: 1px solid var(--ce-border); border-radius: 999px; padding: 4px 12px 4px 4px;
+         color: var(--ce-text); max-width: 280px; overflow: hidden; text-overflow: ellipsis; flex: none; }
+.ce-dl b { font: 600 11px ui-monospace, monospace; padding: 2px 7px; border-radius: 999px; background: var(--ce-inner); color: var(--ce-muted); }
+.ce-dl.hot b { background: var(--ce-hot-bg); color: var(--ce-hot); }
+/* title search above the list */
+#ce-q { margin-bottom: 8px; }
+#ce-q input, #ce-q textarea { border-radius: 999px !important; height: 40px !important; padding: 9px 16px !important;
+                              background: var(--ce-card) !important; border: 1px solid var(--ce-border) !important; resize: none; }
 /* calendar + share buttons in the details panel */
 #ce-detail-actions { gap: 8px; margin: 4px 0 12px; }
 #ce-detail-actions button, #ce-detail-actions a { border-radius: 999px !important; }
@@ -836,6 +922,14 @@ button.ce-details-btn { position: absolute !important; inset: 0; width: 100%; he
 #ce-chat .ce-chat-head span { color: var(--ce-accent-ink); }
 #ce-chat .ce-chat-head small { display: block; color: var(--ce-muted); font-weight: 400; font-size: 12px; margin-top: 2px; }
 #ce-chat .block { border: none !important; background: transparent !important; }
+#ce-fit { border: 1px solid var(--ce-border) !important; border-radius: 18px !important; padding: 14px !important;
+          background: var(--ce-card) !important; gap: 10px !important; margin-bottom: 14px; }
+#ce-fit .ce-chat-head { font-weight: 600; font-size: 14px; }
+#ce-fit .ce-chat-head span { color: var(--ce-accent-ink); }
+#ce-fit .ce-chat-head small { display: block; color: var(--ce-muted); font-weight: 400; font-size: 12px; margin-top: 2px; }
+#ce-fit .block { border: none !important; background: transparent !important; }
+#ce-fit-btn { border-radius: 999px !important; align-self: flex-start; }
+#ce-fit-out:empty { display: none; }
 #ce-chat-q textarea, #ce-chat-q input { border-radius: 14px !important; }
 
 /* poster panel */
@@ -911,12 +1005,13 @@ button.ce-details-btn { position: absolute !important; inset: 0; width: 100%; he
 # ---------- layout ----------
 
 # The first map and list are built once at startup, so the page never opens empty.
-FIRST_MAP, FIRST_FOUND, FIRST_COUNT, _ = show_events(DEFAULT_CITY, DEFAULT_RADIUS, "All", "Nearest")
+FIRST_MAP, FIRST_FOUND, FIRST_COUNT, _, FIRST_STRIP = show_events(DEFAULT_CITY, DEFAULT_RADIUS, "All", "Nearest")
 
 with gr.Blocks(title=TITLE) as demo:
     found_state = gr.State(FIRST_FOUND)   # the events currently shown
     selected_state = gr.State("")         # id of the last opened event
     limit_state = gr.State(PAGE)          # how many cards the list shows
+    profile = gr.BrowserState("", storage_key="hf-profile")   # "About you", remembered in this browser
 
     with gr.Column():
         # ----- main view -----
@@ -932,6 +1027,7 @@ with gr.Blocks(title=TITLE) as demo:
                     theme_btn = gr.Button("Switch day or night", elem_id="ce-theme-btn", scale=0, min_width=42)
                     poster_btn = gr.Button("+ Add from poster", elem_id="ce-poster-btn", scale=0, min_width=150)
                 chip = gr.Radio(CHIPS, value="All", show_label=False, elem_id="ce-chips", container=False)
+                strip_box = gr.HTML(FIRST_STRIP, elem_id="ce-strip-box")
 
             with gr.Column(visible=False, elem_id="ce-poster-panel") as poster_panel:
                 with gr.Row(equal_height=False):
@@ -955,6 +1051,8 @@ with gr.Blocks(title=TITLE) as demo:
                 with gr.Column(scale=7, elem_id="ce-map-col", min_width=0):
                     map_box = gr.HTML(FIRST_MAP)
                 with gr.Column(scale=5, elem_id="ce-list-col", min_width=320):
+                    q = gr.Textbox(placeholder="Search titles, e.g. AI or IIT", show_label=False,
+                                   container=False, elem_id="ce-q", max_length=80)
                     with gr.Row(elem_id="ce-list-head"):
                         count = gr.Markdown(FIRST_COUNT, elem_id="ce-count")
                         sort = gr.Radio(["Nearest", "Closing soon"], value="Nearest", show_label=False,
@@ -991,6 +1089,13 @@ with gr.Blocks(title=TITLE) as demo:
                 with gr.Row(elem_id="ce-detail-actions"):
                     cal_btn = gr.DownloadButton("📅 Add to calendar", visible=False, elem_id="ce-cal", size="sm")
                     share_btn = gr.Button("🔗 Copy link", elem_id="ce-share", size="sm")
+                with gr.Column(elem_id="ce-fit"):
+                    gr.HTML('<div class="ce-chat-head"><span>✦</span> Is this for me?'
+                            '<small>Gemma compares this event with what you write about yourself.</small></div>')
+                    me_box = gr.Textbox(label="About you", placeholder="1st year B.Tech CSE · Python, ESP32, a bit of ML",
+                                        max_length=300, elem_id="ce-me")
+                    fit_btn = gr.Button("✦ Is this for me?", variant="primary", size="sm", elem_id="ce-fit-btn")
+                    fit_out = gr.Markdown(elem_id="ce-fit-out")
                 with gr.Column(elem_id="ce-chat"):
                     gr.HTML('<div class="ce-chat-head"><span>✦</span> Ask about this event'
                             '<small>Answers use only this event’s details.</small></div>')
@@ -1002,8 +1107,8 @@ with gr.Blocks(title=TITLE) as demo:
         saved_box = gr.Textbox("[]", elem_id="ce-saved", show_label=False, container=False)  # hidden, filled by the browser
 
         # ----- wiring -----
-        list_inputs = [city, radius, chip, sort, fetch_count, saved_box]
-        list_outputs = [map_box, found_state, count, limit_state]
+        list_inputs = [city, radius, chip, sort, fetch_count, saved_box, q]
+        list_outputs = [map_box, found_state, count, limit_state, strip_box]
         opens = [main_view, details_view, details_box, selected_state, cal_btn]   # everything that opens details
         city.submit(show_events, list_inputs, list_outputs)
         radius.change(show_events, list_inputs, list_outputs)
@@ -1014,6 +1119,9 @@ with gr.Blocks(title=TITLE) as demo:
         scrim.click(back_to_events, None, [main_view, details_view])
         chat_q.submit(ask_about_event, [chat_q, chat_box, selected_state], [chat_q, chat_box])
         selected_state.change(lambda: [], None, chat_box)  # new event, fresh chat
+        fit_btn.click(fit_check, [me_box, selected_state], [fit_out, profile])
+        demo.load(lambda p: p, profile, me_box)                 # fill "About you" from last time
+        selected_state.change(lambda: "", None, fit_out)        # new event, fresh verdict
         # The day/night switch runs only in the browser and is remembered (see HEAD).
         theme_btn.click(None, js=THEME_JS)
         # a star click only needs a redraw when the Saved chip is showing
@@ -1022,6 +1130,7 @@ with gr.Blocks(title=TITLE) as demo:
         demo.load(None, None, saved_box,
                   js="() => { try { return localStorage.getItem('hf-saved') || '[]'; } catch (e) { return '[]'; } }")
         pin_box.change(open_from_pin, [pin_box, found_state], opens)
+        q.change(show_events, list_inputs, list_outputs, trigger_mode="always_last", show_progress="hidden")
         share_btn.click(None, None, None, js="""() => {
           const open = document.querySelector("#ce-drawer .ce-details[data-id]");
           if (!open) return;
