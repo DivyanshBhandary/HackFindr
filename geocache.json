@@ -1,0 +1,603 @@
+{
+  "raipur, chhattisgarh": [
+    21.2514,
+    81.6296
+  ],
+  "raipur": [
+    21.2514,
+    81.6296
+  ],
+  "bhilai, chhattisgarh": [
+    21.1938,
+    81.3509
+  ],
+  "nagpur, maharashtra": [
+    21.1458,
+    79.0882
+  ],
+  "bhubaneswar, odisha": [
+    20.2961,
+    85.8245
+  ],
+  "hyderabad, telangana": [
+    17.385,
+    78.4867
+  ],
+  "bengaluru, karnataka": [
+    12.9716,
+    77.5946
+  ],
+  "new delhi, delhi": [
+    28.6139,
+    77.209
+  ],
+  "mumbai, maharashtra": [
+    19.076,
+    72.8777
+  ],
+  "pune, maharashtra": [
+    18.5204,
+    73.8567
+  ],
+  "west delhi, delhi": [
+    28.6409705,
+    77.0949778
+  ],
+  "amloh, punjab": [
+    30.6115717,
+    76.2316357
+  ],
+  "bangalore, karnataka": [
+    12.9767936,
+    77.590082
+  ],
+  "vile parle, maharashtra": [
+    19.0999098,
+    72.8440038
+  ],
+  "guwahati, assam": [
+    26.1805978,
+    91.753943
+  ],
+  "delhi, delhi": [
+    28.6664535,
+    77.2169781
+  ],
+  "east delhi, delhi": [
+    28.6252148,
+    77.2960034
+  ],
+  "farrukhnagar, haryana": [
+    28.467225,
+    76.8253658
+  ],
+  "vellore, tamil nadu": [
+    12.9021849,
+    79.061104
+  ],
+  "jaipur, rajasthan": [
+    26.9154576,
+    75.8189817
+  ],
+  "talegaon dabhade, maharashtra": [
+    18.7337107,
+    73.6728593
+  ],
+  "south west delhi, delhi": [
+    28.5864481,
+    76.9793527
+  ],
+  "gurgaon, haryana": [
+    28.4646148,
+    77.0299194
+  ],
+  "bangalore urban, karnataka": [
+    13.0,
+    77.583333
+  ],
+  "ghaziabad, uttar pradesh": [
+    28.7749966,
+    77.4586967
+  ],
+  "santa clara convention center + online": null,
+  "toronto": [
+    43.6534817,
+    -79.3839347
+  ],
+  "bilaspur": [
+    22.1638486,
+    82.1365923
+  ],
+  "bhilai": [
+    21.2120677,
+    81.3732849
+  ],
+  "grand finals 2027": null,
+  "princeton high school": [
+    40.3587009,
+    -74.6560332
+  ],
+  "tripura vasini palace grounds, bengaluru": null,
+  "iit guwahati": [
+    26.1924788,
+    91.6946357
+  ],
+  "queens college - dining hall": [
+    40.7372835,
+    -73.8172712
+  ],
+  "vikrant university , gwalior": null,
+  "ucf engineering ii (eng2)": null,
+  "qmul - bancroft building 1.13": null,
+  "boston venture week": null,
+  "fort worth": [
+    32.753177,
+    -97.3327459
+  ],
+  "amy gutman hall": null,
+  "lovely professional university": [
+    31.2533133,
+    75.703277
+  ],
+  "puerto rico convention center": [
+    18.4533239,
+    -66.0925846
+  ],
+  "student center east ballroom gsu": null,
+  "dhanbad, jharkhand": [
+    23.7952809,
+    86.4309638
+  ],
+  "jammu, jammu and kashmir": [
+    32.7185614,
+    74.8580917
+  ],
+  "amritsar, punjab": [
+    31.6356659,
+    74.8787496
+  ],
+  "rohini, delhi": [
+    28.7063083,
+    77.1087892
+  ],
+  "powai, maharashtra": [
+    19.1187195,
+    72.9073476
+  ],
+  "kalyanpur, uttar pradesh": [
+    29.1639163,
+    78.8992123
+  ],
+  "kolkata, west bengal": [
+    22.5726459,
+    88.3638953
+  ],
+  "mangaluru, karnataka": [
+    12.8698101,
+    74.8430082
+  ],
+  "greater noida, uttar pradesh": [
+    28.4670734,
+    77.5137649
+  ],
+  "south delhi, delhi": [
+    28.4992605,
+    77.1743624
+  ],
+  "kalmeshwar, maharashtra": [
+    21.2374393,
+    78.9081689
+  ],
+  "jais, uttar pradesh": [
+    26.2650823,
+    81.5484734
+  ],
+  "karchana, uttar pradesh": [
+    25.2840995,
+    81.9376326
+  ],
+  "chennai, tamil nadu": [
+    13.0800915,
+    80.2807978
+  ],
+  "manipal, karnataka": [
+    13.3519723,
+    74.7870308
+  ],
+  "dehradun, uttarakhand": [
+    30.3255646,
+    78.0436813
+  ],
+  "tiruchirappalli, tamil nadu": [
+    10.8071144,
+    78.6880939
+  ],
+  "warangal, telangana": [
+    17.9820644,
+    79.5970954
+  ],
+  "bandra, maharashtra": [
+    19.0549792,
+    72.8402203
+  ],
+  "mumbai suburban, maharashtra": [
+    19.1309844,
+    72.8894618
+  ],
+  "sangrur, punjab": [
+    30.135717,
+    75.8533326
+  ],
+  "sonipat, haryana": [
+    28.9953758,
+    77.0233627
+  ],
+  "gorakhpur, uttar pradesh": [
+    26.6677977,
+    83.3642334
+  ],
+  "laungowal, punjab": [
+    30.1942109,
+    75.6798604
+  ],
+  "rourkela, odisha": [
+    22.2309255,
+    84.8678705
+  ],
+  "durgapur, west bengal": [
+    23.5350475,
+    87.3380425
+  ],
+  "dasna, uttar pradesh": [
+    28.693684,
+    77.5446152
+  ],
+  "jalpaiguri, west bengal": [
+    26.6262805,
+    88.7334485
+  ],
+  "bengaluru": [
+    12.9767936,
+    77.590082
+  ],
+  "gwalior": [
+    26.2037247,
+    78.1573628
+  ],
+  "nagpur": [
+    21.1498134,
+    79.0820556
+  ],
+  "bhopal, madhya pradesh": [
+    23.2584857,
+    77.401989
+  ],
+  "gautam buddha nagar, uttar pradesh": [
+    28.368716,
+    77.5970121
+  ],
+  "south goa, goa": [
+    15.3376121,
+    73.9937035
+  ],
+  "tambaram, tamil nadu": [
+    12.9257923,
+    80.1179194
+  ],
+  "agra, uttar pradesh": [
+    27.1752554,
+    78.0098161
+  ],
+  "kharghar, maharashtra": [
+    19.0525298,
+    73.0735111
+  ],
+  "new york": [
+    40.7127281,
+    -74.0060152
+  ],
+  "calgary, alberta": [
+    51.0456064,
+    -114.057541
+  ],
+  "mississauga, ontario": [
+    43.5884727,
+    -79.643658
+  ],
+  "kitchener, ontario": [
+    43.451291,
+    -80.4927815
+  ],
+  "rochester, new york": [
+    43.157285,
+    -77.615214
+  ],
+  "edinburgh, edinburgh": [
+    55.9519018,
+    -3.1904199
+  ],
+  "cincinnati , ohio": [
+    39.1012809,
+    -84.5127405
+  ],
+  "vancovuer, british columbia": null,
+  "british columbia": [
+    55.001251,
+    -125.002441
+  ],
+  "college station, texas": [
+    30.6183939,
+    -96.3455991
+  ],
+  "buffalo, northeast": [
+    45.6992585,
+    -111.0655066
+  ],
+  "salisbury, md": [
+    38.366027,
+    -75.6009964
+  ],
+  "atlanta, ga": [
+    33.7544657,
+    -84.3898151
+  ],
+  "timișoara, timiș": [
+    45.7538355,
+    21.2257474
+  ],
+  "espoo, uusimaa": [
+    60.2049651,
+    24.6559808
+  ],
+  "princeton, new jersey": [
+    40.3496953,
+    -74.6597376
+  ],
+  "brooklyn, new york": [
+    40.6526006,
+    -73.9497211
+  ],
+  "amherst, ma": [
+    42.3731948,
+    -72.5198761
+  ],
+  "arlington, texas": [
+    32.7355816,
+    -97.1071186
+  ],
+  "la jolla, ca": [
+    32.8458529,
+    -117.2575702
+  ],
+  "ypsilanti, michigan": [
+    42.241051,
+    -83.6117646
+  ],
+  "durham, county durham": [
+    54.7770139,
+    -1.5756205
+  ],
+  "tempe, arizona": [
+    33.4255117,
+    -111.940016
+  ],
+  "london, ontario": [
+    42.9836747,
+    -81.2496068
+  ],
+  "st. john's, newfoundland and labrador / avalon peninsula": null,
+  "newfoundland and labrador / avalon peninsula": [
+    47.392337,
+    -53.5253983
+  ],
+  "wellesley , massachesetts": null,
+  "massachesetts": null,
+  "boston, ma": [
+    42.3588336,
+    -71.0578303
+  ],
+  "lleida, lleida, spain": [
+    41.6147605,
+    0.6267842
+  ],
+  "sheffield, south yorkshire": [
+    53.3806626,
+    -1.4702278
+  ],
+  "manhattan, kansas": [
+    39.1836082,
+    -96.5716694
+  ],
+  "hamilton, ontario": [
+    43.2560802,
+    -79.8728583
+  ],
+  "toronto, ontario": [
+    43.6534817,
+    -79.3839347
+  ],
+  "ottawa, ontario": [
+    45.4208777,
+    -75.6901106
+  ],
+  "los angeles, ca": [
+    34.0536923,
+    -118.2427676
+  ],
+  "vancouver, british columbia": [
+    49.2608724,
+    -123.113952
+  ],
+  "alexandria, virginia": [
+    38.8051095,
+    -77.0470229
+  ],
+  "missisauga, ontario": [
+    43.6263043,
+    -79.6765075
+  ],
+  "washington, dc": [
+    38.8950982,
+    -77.0363849
+  ],
+  "providence, ri": [
+    41.8239891,
+    -71.4128343
+  ],
+  "athens , georgia": [
+    33.9597677,
+    -83.376398
+  ],
+  "raleigh, north carolina": [
+    35.7803977,
+    -78.6390989
+  ],
+  "west lafayette, indiana": [
+    40.4258686,
+    -86.9080655
+  ],
+  "east lansing, michigan": [
+    42.7320307,
+    -84.4721678
+  ],
+  "san francisco, ca": [
+    37.7879363,
+    -122.4075201
+  ],
+  "clemson, sc": [
+    34.6850749,
+    -82.8364111
+  ],
+  "urbana, illinois": [
+    40.1117174,
+    -88.207301
+  ],
+  "a coruña, a coruña": [
+    43.3454621,
+    -8.4138519
+  ],
+  "cincinnati, ohio": [
+    39.1012809,
+    -84.5127405
+  ],
+  "ahmedabad, gujarat": [
+    23.0215374,
+    72.5800568
+  ],
+  "pimpri-chinchwad, maharashtra": [
+    18.6279288,
+    73.8009829
+  ],
+  "thane, maharashtra": [
+    19.3653598,
+    73.3685437
+  ],
+  "tekkali, andhra pradesh": [
+    18.6084345,
+    84.2310948
+  ],
+  "panipat, haryana": [
+    29.391272,
+    76.9771681
+  ],
+  "lavasa, maharashtra": [
+    18.4045968,
+    73.5041748
+  ],
+  "mandsaur, madhya pradesh": [
+    24.2628148,
+    75.385692
+  ],
+  "kunnamangalam, kerala": [
+    11.3046779,
+    75.8785617
+  ],
+  "burla, odisha": [
+    21.393393,
+    83.9264804
+  ],
+  "ranchi, jharkhand": [
+    23.3700501,
+    85.3250387
+  ],
+  "patiala, punjab": [
+    30.2092778,
+    76.3397231
+  ],
+  "irvington high school": [
+    40.7291051,
+    -74.2344366
+  ],
+  "myladi, kerala": [
+    11.0984287,
+    76.0474923
+  ],
+  "ksr kalvi nagar, tamil nadu": [
+    11.3639378,
+    77.8354768
+  ],
+  "hamirpur, himachal pradesh": [
+    31.6539866,
+    76.5403633
+  ],
+  "miami, fl": [
+    25.7741566,
+    -80.1935973
+  ],
+  "turku, varsinais-suomi": [
+    60.4515932,
+    22.2669991
+  ],
+  "peterborough, ontario": [
+    44.3048009,
+    -78.3199496
+  ],
+  "york pa, pa": [
+    39.962493,
+    -76.7276989
+  ],
+  "richardson, texas": [
+    32.9481789,
+    -96.7297206
+  ],
+  "new york, new york": [
+    40.7127281,
+    -74.0060152
+  ],
+  "troy, new york": [
+    42.7284117,
+    -73.6917878
+  ],
+  "new brunswick, new jersey": [
+    40.4936119,
+    -74.4436416
+  ],
+  "newark, delaware": [
+    39.6828358,
+    -75.7515682
+  ],
+  "kent, ohio": [
+    41.1513108,
+    -81.3578047
+  ],
+  "la jolla, california": [
+    32.8458529,
+    -117.2575702
+  ],
+  "montreal, quebec": [
+    45.5031824,
+    -73.5698065
+  ],
+  "lawrence, kansas": [
+    38.9719137,
+    -95.2359403
+  ],
+  "richardson, tx": [
+    32.9481789,
+    -96.7297206
+  ],
+  "los angeles, california": [
+    34.0536923,
+    -118.2427676
+  ]
+}
