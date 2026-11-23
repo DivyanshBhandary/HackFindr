@@ -118,6 +118,20 @@ def build(gradio_blocks, **mount_kwargs):
         request.session["uid"] = user["id"]
         return RedirectResponse(request.session.pop("next", "/"))
 
+    @app.get("/unsubscribe")
+    async def unsubscribe(request: Request):
+        """One-click link from every email: turns all emails off (no sign-in needed, the link is signed)."""
+        import reminders
+        try:
+            user_id = int(request.query_params.get("u", ""))
+        except ValueError:
+            user_id = 0
+        if not user_id or not accounts.get_user(user_id) or not reminders.check_token(user_id, request.query_params.get("t")):
+            return HTMLResponse(_page("Link not valid", "This unsubscribe link is broken or the account no longer exists."), 400)
+        accounts.set_email_prefs(user_id, reminders=False, digest=False)
+        return HTMLResponse(_page("You are unsubscribed",
+                                  "HackFindr will not email you any more. You can turn emails back on in your profile."))
+
     @app.get("/logout")
     async def logout(request: Request):
         request.session.clear()

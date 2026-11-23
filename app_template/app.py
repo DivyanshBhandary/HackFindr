@@ -29,6 +29,8 @@ import auth
 import eligibility
 import events
 import gemma_client
+import mailer
+import reminders
 from harness.tools import filter_events
 
 TITLE = "HackFindr"
@@ -895,15 +897,42 @@ def profile_intro(user):
 def load_account(request: gr.Request):
     """Runs when the page opens: header button, profile form and its intro."""
     user = auth.current_user(request)
-    return account_html(user), profile_button(user), profile_intro(user), *profile_values(user)
+    return account_html(user), profile_button(user), profile_intro(user), *profile_values(user), *email_values(user)
 
 
-def save_profile(name, college, city, year, branch, skills, interests, team_size, request: gr.Request):
+def email_values(user):
+    user = user or {}
+    return gr.update(value=bool(user.get("reminders"))), gr.update(value=bool(user.get("digest")))
+
+
+def email_note():
+    if mailer.live():
+        return "Emails come from HackFindr's Gmail. Every email has an unsubscribe link."
+    return ("Email sending is not set up on this computer yet (SMTP_USER / SMTP_PASSWORD in .env), "
+            "so emails are saved to data/outbox/ instead of being sent.")
+
+
+def test_email(request: gr.Request = None):
+    user = auth.current_user(request)
+    if not user:
+        return "Sign in first."
+    blocked = limit_message(request, "poster")      # the small hourly limit, so nobody can spam
+    if blocked:
+        return blocked
+    try:
+        return reminders.send_test(user)
+    except Exception as error:
+        return f"Could not send the test email: {esc(error)}"
+
+
+def save_profile(name, college, city, year, branch, skills, interests, team_size, remind, digest,
+                 request: gr.Request):
     user = auth.current_user(request)
     if not user:
         return "Sign in first.", gr.update(), gr.update()
     values = [name, college, city, year, branch, skills, interests, team_size]
-    user = accounts.update_profile(user["id"], **dict(zip(PROFILE_KEYS, values)))
+    accounts.update_profile(user["id"], **dict(zip(PROFILE_KEYS, values)))
+    user = accounts.set_email_prefs(user["id"], reminders=remind, digest=digest)
     return "Profile saved ✓", profile_button(user), profile_intro(user)
 
 
@@ -1490,8 +1519,13 @@ with gr.Blocks(title=TITLE) as demo:
                     p_team = gr.Textbox(label="Usual team size", placeholder="3", max_length=10, min_width=160)
                 p_skills = gr.Textbox(label="Skills", placeholder="Python, React, ML", max_length=300)
                 p_interests = gr.Textbox(label="Interests", placeholder="AI, fintech, social impact", max_length=300)
+                with gr.Group(elem_id="ce-emails"):
+                    p_remind = gr.Checkbox(label="Email me 3 days and 1 day before my saved (★) events close")
+                    p_digest = gr.Checkbox(label="Monday email: my top 5 best-fit events for the week")
+                    gr.Markdown(email_note(), elem_classes="ce-caption")
                 with gr.Row(elem_id="ce-profile-actions"):
                     p_save = gr.Button("Save profile", variant="primary", scale=0, min_width=140)
+                    p_test = gr.Button("✉ Send me a test email", size="sm", scale=0, min_width=170)
                     gr.HTML('<a class="ce-signout" href="/logout" '
                             'onclick="try{localStorage.removeItem(\'hf-saved\')}catch(e){}">Sign out</a>')
                 p_status = gr.Markdown("")
@@ -1611,12 +1645,13 @@ with gr.Blocks(title=TITLE) as demo:
                   js="(v) => { try { localStorage.setItem('hf-saved', v || '[]'); } catch (e) {} }")
         saved_box.change(store_saved, [saved_box, synced_state], None, show_progress="hidden")
         # signed in: redraw with eligibility tags, then fill the "Top 5 for you" row (one Gemma call a day)
-        demo.load(load_account, None, [signin_box, profile_btn, profile_title] + profile_boxes) \
+        demo.load(load_account, None, [signin_box, profile_btn, profile_title] + profile_boxes + [p_remind, p_digest]) \
             .then(show_events, list_inputs, list_outputs, show_progress="hidden") \
             .then(top_for_you, found_state, top_box, show_progress="hidden")
         profile_btn.click(lambda: (gr.update(visible=True), ""), None, [profile_panel, p_status])
         profile_close.click(lambda: gr.update(visible=False), None, profile_panel)
-        p_save.click(save_profile, profile_boxes, [p_status, profile_btn, profile_title]) \
+        p_test.click(test_email, None, p_status)
+        p_save.click(save_profile, profile_boxes + [p_remind, p_digest], [p_status, profile_btn, profile_title]) \
             .then(show_events, list_inputs, list_outputs, show_progress="hidden") \
             .then(top_for_you, found_state, top_box, show_progress="hidden")
         p_delete.click(delete_account, p_confirm, [p_status, profile_btn]) \
@@ -1668,6 +1703,7 @@ if __name__ == "__main__":
     # share=True would put your app on the public internet. Do not.
     if PUBLIC:
         events.start_auto_refresh()
+    reminders.start()                # reminder emails and the Monday digest, checked every hour
     eligibility.start_background()   # Gemma reads eligibility rules for events it has not read yet
     demo.queue(max_size=40)      # extra visitors wait in line instead of overloading the app
     # Gradio runs inside a small FastAPI app that adds /login, /auth and /logout (see auth.py).

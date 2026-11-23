@@ -51,7 +51,16 @@ CREATE TABLE IF NOT EXISTS fit_checks (      -- "Is this for me?" answers, so Be
     at        REAL NOT NULL,
     PRIMARY KEY (user_id, event_id)
 );
+CREATE TABLE IF NOT EXISTS sent_emails (     -- so a reminder or digest is never sent twice
+    user_id   INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    kind      TEXT NOT NULL,                 -- 'remind3', 'remind1', 'digest' or 'test'
+    ref       TEXT NOT NULL,                 -- event id for reminders, ISO week for the digest
+    at        REAL NOT NULL,
+    PRIMARY KEY (user_id, kind, ref)
+);
 """
+# email choices, added to users after Phase 1 (old databases get them on start)
+EMAIL_PREFS = {"reminders": 0, "digest": 0}
 
 
 @contextmanager
@@ -70,6 +79,40 @@ def connect():
 def init():
     with connect() as con:
         con.executescript(SCHEMA)
+        have = {r["name"] for r in con.execute("PRAGMA table_info(users)")}
+        for col, default in EMAIL_PREFS.items():
+            if col not in have:
+                con.execute(f"ALTER TABLE users ADD COLUMN {col} INTEGER NOT NULL DEFAULT {default}")
+
+
+def set_email_prefs(user_id, reminders=None, digest=None):
+    """Turn reminder / digest emails on or off (None leaves a choice as it is)."""
+    with connect() as con:
+        for col, val in (("reminders", reminders), ("digest", digest)):
+            if val is not None:
+                con.execute(f"UPDATE users SET {col} = ?, updated_at = ? WHERE id = ?", (int(bool(val)), time.time(), user_id))
+    return get_user(user_id)
+
+
+def email_users(kind):
+    """Everyone who chose this kind of email ('reminders' or 'digest')."""
+    assert kind in EMAIL_PREFS
+    with connect() as con:
+        return [dict(r) for r in con.execute(f"SELECT * FROM users WHERE {kind} = 1")]
+
+
+def mark_sent(user_id, kind, ref):
+    """Record an email. Returns False if it was already sent (so the caller skips it)."""
+    with connect() as con:
+        cur = con.execute("INSERT OR IGNORE INTO sent_emails (user_id, kind, ref, at) VALUES (?, ?, ?, ?)",
+                          (user_id, kind, str(ref)[:120], time.time()))
+        return cur.rowcount == 1
+
+
+def unmark_sent(user_id, kind, ref):
+    """Forget a record (used when sending failed, so it is tried again later)."""
+    with connect() as con:
+        con.execute("DELETE FROM sent_emails WHERE user_id = ? AND kind = ? AND ref = ?", (user_id, kind, str(ref)[:120]))
 
 
 def sign_in(provider, subject, email, name="", picture=""):

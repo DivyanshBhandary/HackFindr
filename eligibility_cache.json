@@ -378,5 +378,439 @@
       "by": "gemma"
     },
     "at": 1795439319.8730817
+  },
+  "unstop-b90c1152": {
+    "hash": "6f604a9025a0",
+    "rules": {
+      "audience": [
+        "ug1",
+        "ug2",
+        "ug3",
+        "ug4",
+        "ug5",
+        "pg"
+      ],
+      "open_to_all": true,
+      "degrees": [],
+      "branches": [],
+      "team_min": 2,
+      "team_max": 6,
+      "women_only": false,
+      "states": [],
+      "fee": false,
+      "note": "Inter-college and inter-specialization teams are allowed.",
+      "by": "gemma"
+    },
+    "at": 1795440817.750208
+  },
+  "unstop-a42199e1": {
+    "hash": "c371b439fd36",
+    "rules": {
+      "audience": [
+        "school",
+        "ug1",
+        "ug2",
+        "ug3",
+        "ug4",
+        "ug5",
+        "pg"
+      ],
+      "open_to_all": true,
+      "degrees": [
+        "Diploma"
+      ],
+      "branches": [],
+      "team_min": 1,
+      "team_max": 4,
+      "women_only": false,
+      "states": [],
+      "fee": false,
+      "note": "One track is specifically for Diploma and School students.",
+      "by": "gemma"
+    },
+    "at": 1795440817.750225
+  },
+  "unstop-a3625981": {
+    "hash": "3abc0c0e19d9",
+    "rules": {
+      "audience": [],
+      "open_to_all": false,
+      "degrees": [],
+      "branches": [],
+      "team_min": 1,
+      "team_max": 1,
+      "women_only": false,
+      "states": [],
+      "fee": true,
+      "note": "Workshop at IIT Madras.",
+      "by": "gemma"
+    },
+    "at": 1795440817.7502341
+  },
+  "unstop-5c7111fb": {
+    "hash": "8f8c40029032",
+    "rules": {
+      "audience": [],
+      "open_to_all": false,
+      "degrees": [],
+      "branches": [],
+      "team_min": 1,
+      "team_max": 1,
+      "women_only": false,
+      "states": [],
+      "fee": true,
+      "note": "Full stack development workshop at IIT Madras.",
+      "by": "gemma"
+    },
+    "at": 1795440817.750241
+  },
+  "unstop-9ed436f4": {
+    "hash": "a61f41663e5e",
+    "rules": {
+      "audience": [],
+      "open_to_all": false,
+      "degrees": [],
+      "branches": [],
+      "team_min": 1,
+      "team_max": 1,
+      "women_only": false,
+      "states": [],
+      "fee": true,
+      "note": "AI Voice Agents workshop at IIT Madras.",
+      "by": "gemma"
+    },
+    "at": 1795440817.750247
+  },
+  "unstop-d214d167": {
+    "hash": "a151d2de2b0a",
+    "rules": {
+      "audience": [],
+      "open_to_all": false,
+      "degrees": [],
+      "branches": [],
+      "team_min": 1,
+      "team_max": 1,
+      "women_only": false,
+      "states": [],
+      "fee": true,
+      "note": "CAD for Industrial Design workshop at IIT Madras.",
+      "by": "gemma"
+    },
+    "at": 1795440817.7502532
+  },
+  "unstop-954627da": {
+    "hash": "22f4f70c9970",
+    "rules": {
+      "audience": [],
+      "open_to_all": false,
+      "degrees": [],
+      "branches": [],
+      "team_min": 1,
+      "team_max": 1,
+      "women_only": false,
+      "states": [],
+      "fee": true,
+      "note": "IoT and Arduino workshop at IIT Madras.",
+      "by": "gemma"
+    },
+    "at": 1795440817.7502599
+  },
+  "unstop-9230be28": {
+    "hash": "5e0c82f0abf2",
+    "rules": {
+      "audience": [],
+      "open_to_all": false,
+      "degrees": [],
+      "branches": [],
+      "team_min": 1,
+      "team_max": 1,
+      "women_only": false,
+      "states": [],
+      "fee": true,
+      "note": "Investing in AI era workshop at IIT Madras.",
+      "by": "gemma"
+    },
+    "at": 1795440817.7502663
+  },
+  "unstop-36c2de43": {
+    "hash": "a56f870ee432",
+    "rules": {
+      "audience": [],
+      "open_to_all": false,
+      "degrees": [],
+      "branches": [],
+      "team_min": 1,
+      "team_max": 1,
+      "women_only": false,
+      "states": [],
+      "fee": true,
+      "note": "",
+      "by": "gemma"
+    },
+    "at": 1795440934.1581888
+  },
+  "unstop-2cff209c": {
+    "hash": "d652d159e5e0",
+    "rules": {
+      "audience": [],
+      "open_to_all": false,
+      "degrees": [],
+      "branches": [],
+      "team_min": 1,
+      "team_max": 1,
+      "women_only": false,
+      "states": [],
+      "fee": true,
+      "note": "",
+      "by": "gemma"
+    },
+    "at": 1795440934.1581995
+  },
+  "unstop-043a9e93": {
+    "hash": "188404189b68",
+    "rules": {
+      "audience": [],
+      "open_to_all": false,
+      "degrees": [],
+      "branches": [],
+      "team_min": 1,
+      "team_max": 1,
+      "women_only": false,
+      "states": [],
+      "fee": true,
+      "note": "",
+      "by": "gemma"
+    },
+    "at": 1795440934.1582072
+  },
+  "unstop-a62bed02": {
+    "hash": "8552906b76e1",
+    "rules": {
+      "audience": [],
+      "open_to_all": false,
+      "degrees": [],
+      "branches": [],
+      "team_min": 1,
+      "team_max": 1,
+      "women_only": false,
+      "states": [],
+      "fee": true,
+      "note": "",
+      "by": "gemma"
+    },
+    "at": 1795440934.1582153
+  },
+  "unstop-ecb2d577": {
+    "hash": "bb9043838835",
+    "rules": {
+      "audience": [],
+      "open_to_all": false,
+      "degrees": [],
+      "branches": [],
+      "team_min": 1,
+      "team_max": 1,
+      "women_only": false,
+      "states": [],
+      "fee": true,
+      "note": "",
+      "by": "gemma"
+    },
+    "at": 1795440934.1582208
+  },
+  "unstop-0f273fd2": {
+    "hash": "67c64e77dd1b",
+    "rules": {
+      "audience": [],
+      "open_to_all": false,
+      "degrees": [],
+      "branches": [],
+      "team_min": 1,
+      "team_max": 1,
+      "women_only": false,
+      "states": [],
+      "fee": true,
+      "note": "",
+      "by": "gemma"
+    },
+    "at": 1795440934.158227
+  },
+  "unstop-b4eb01ad": {
+    "hash": "babedf5b6634",
+    "rules": {
+      "audience": [],
+      "open_to_all": false,
+      "degrees": [],
+      "branches": [],
+      "team_min": 1,
+      "team_max": 1,
+      "women_only": false,
+      "states": [],
+      "fee": true,
+      "note": "",
+      "by": "gemma"
+    },
+    "at": 1795440934.1582327
+  },
+  "unstop-5c9ab3da": {
+    "hash": "abddde26464e",
+    "rules": {
+      "audience": [],
+      "open_to_all": false,
+      "degrees": [],
+      "branches": [],
+      "team_min": 1,
+      "team_max": 1,
+      "women_only": false,
+      "states": [],
+      "fee": true,
+      "note": "",
+      "by": "gemma"
+    },
+    "at": 1795440934.1582382
+  },
+  "unstop-7c5a5a30": {
+    "hash": "887d7d8685ea",
+    "rules": {
+      "audience": [],
+      "open_to_all": false,
+      "degrees": [],
+      "branches": [],
+      "team_min": 1,
+      "team_max": 1,
+      "women_only": false,
+      "states": [],
+      "fee": true,
+      "note": "Part of Shaastra, IIT Madras.",
+      "by": "gemma"
+    },
+    "at": 1795441225.5909908
+  },
+  "unstop-0b38fbe0": {
+    "hash": "28e4cbc44c1c",
+    "rules": {
+      "audience": [],
+      "open_to_all": false,
+      "degrees": [],
+      "branches": [],
+      "team_min": 1,
+      "team_max": 1,
+      "women_only": false,
+      "states": [],
+      "fee": true,
+      "note": "Part of Shaastra, IIT Madras.",
+      "by": "gemma"
+    },
+    "at": 1795441225.5910025
+  },
+  "unstop-5b8dbea3": {
+    "hash": "25cad612a748",
+    "rules": {
+      "audience": [],
+      "open_to_all": false,
+      "degrees": [],
+      "branches": [],
+      "team_min": 1,
+      "team_max": 1,
+      "women_only": false,
+      "states": [],
+      "fee": true,
+      "note": "Part of Shaastra, IIT Madras.",
+      "by": "gemma"
+    },
+    "at": 1795441225.5910096
+  },
+  "unstop-733590b9": {
+    "hash": "214464b81e70",
+    "rules": {
+      "audience": [],
+      "open_to_all": false,
+      "degrees": [],
+      "branches": [],
+      "team_min": 1,
+      "team_max": 1,
+      "women_only": false,
+      "states": [],
+      "fee": true,
+      "note": "Part of Shaastra, IIT Madras.",
+      "by": "gemma"
+    },
+    "at": 1795441225.5910153
+  },
+  "unstop-4552d3f8": {
+    "hash": "dfd5dd61002d",
+    "rules": {
+      "audience": [],
+      "open_to_all": false,
+      "degrees": [],
+      "branches": [],
+      "team_min": 1,
+      "team_max": 1,
+      "women_only": false,
+      "states": [],
+      "fee": true,
+      "note": "Part of Shaastra, IIT Madras.",
+      "by": "gemma"
+    },
+    "at": 1795441225.591021
+  },
+  "unstop-b6ad8dd5": {
+    "hash": "ebc29329c786",
+    "rules": {
+      "audience": [],
+      "open_to_all": false,
+      "degrees": [],
+      "branches": [],
+      "team_min": 1,
+      "team_max": 1,
+      "women_only": false,
+      "states": [],
+      "fee": true,
+      "note": "Part of Shaastra, IIT Madras.",
+      "by": "gemma"
+    },
+    "at": 1795441225.5910265
+  },
+  "unstop-e02d0309": {
+    "hash": "7e9d4c918ff8",
+    "rules": {
+      "audience": [],
+      "open_to_all": false,
+      "degrees": [],
+      "branches": [],
+      "team_min": 1,
+      "team_max": 1,
+      "women_only": false,
+      "states": [],
+      "fee": true,
+      "note": "Part of Shaastra, IIT Madras.",
+      "by": "gemma"
+    },
+    "at": 1795441225.5910316
+  },
+  "unstop-82069e49": {
+    "hash": "519953d64cf1",
+    "rules": {
+      "audience": [
+        "ug1",
+        "ug2",
+        "ug3",
+        "ug4",
+        "ug5",
+        "pg",
+        "graduate",
+        "professional"
+      ],
+      "open_to_all": true,
+      "degrees": [],
+      "branches": [],
+      "team_min": null,
+      "team_max": null,
+      "women_only": false,
+      "states": [],
+      "fee": false,
+      "note": "Open to students, graduates, and professionals.",
+      "by": "gemma"
+    },
+    "at": 1795441225.5910485
   }
 }
