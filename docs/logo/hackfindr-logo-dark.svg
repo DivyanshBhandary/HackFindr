@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="720" height="180" viewBox="0 0 180 45">
+  <rect width="180" height="45" rx="10" fill="#0f0e15"/>
+  <g transform="translate(4.5 4.5)">
+    <rect x="0.75" y="0.75" width="34.5" height="34.5" rx="10.5" fill="#1e1b2e" stroke="#7c6dff" stroke-width="1.5"/>
+    <circle cx="18" cy="18" r="10" fill="#7c6dff" fill-opacity="0.12" stroke="#7c6dff" stroke-width="1.6" stroke-dasharray="3 2.5"/>
+    <circle cx="18" cy="18" r="3.2" fill="#ff5a7a"/>
+    <circle cx="25" cy="12" r="2" fill="#b072ff"/>
+    <circle cx="11.5" cy="23" r="2" fill="#10b981"/>
+  </g>
+  <text x="52" y="30.5" font-family="Inter, 'Segoe UI', Arial, sans-serif" font-size="22" font-weight="600" letter-spacing="-0.44" fill="#f1f0f6">Hack<tspan fill="#b3a9ff">Findr</tspan></text>
+</svg>

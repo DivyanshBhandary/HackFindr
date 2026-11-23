@@ -162,10 +162,12 @@ def find_events(city, radius, chip, sort, saved=(), query=""):
 
 ICON_IMG = ('<svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" '
             'stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l2.4 5.6L20 10l-5.6 2.4L12 18l-2.4-5.6L4 10l5.6-2.4z"/></svg>')
-ICON_PIN = ('<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.2" '
-            'stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s-7-6.2-7-12a7 7 0 0 1 14 0c0 5.8-7 12-7 12z"/>'
-            '<circle cx="12" cy="9" r="2.5"/></svg>')
-LOGO_HTML = (f'<div class="ce-logo"><span class="ce-logo-box">{ICON_PIN}</span>'
+# the logo: the map's dashed distance circle, "you" in the middle and two events (docs/logo has the files)
+ICON_RADIUS = ('<svg width="28" height="28" viewBox="6 6 24 24" aria-hidden="true">'
+               '<circle cx="18" cy="18" r="10" fill="var(--ce-accent)" fill-opacity="0.12" stroke="var(--ce-accent)" '
+               'stroke-width="1.6" stroke-dasharray="3 2.5"/><circle cx="18" cy="18" r="3.2" fill="#ff5a7a"/>'
+               '<circle cx="25" cy="12" r="2" fill="#b072ff"/><circle cx="11.5" cy="23" r="2" fill="#10b981"/></svg>')
+LOGO_HTML = (f'<div class="ce-logo"><span class="ce-logo-box">{ICON_RADIUS}</span>'
              f'<span class="ce-logo-word">Hack<b>Findr</b></span></div>')
 
 
@@ -953,8 +955,8 @@ CSS = """
                                                         box-shadow: none !important; gap: 10px; overflow: visible; }
 .ce-logo { display: flex; align-items: center; gap: 10px; white-space: nowrap; }
 .ce-logo-box { width: 36px; height: 36px; flex: none; border-radius: 11px; display: inline-flex; align-items: center;
-               justify-content: center; background: linear-gradient(135deg, var(--ce-accent), var(--ce-accent-2));
-               box-shadow: 0 6px 16px color-mix(in srgb, var(--ce-accent) 35%, transparent); }
+               justify-content: center; background: var(--ce-card); border: 1.5px solid var(--ce-accent); box-sizing: border-box;
+               box-shadow: 0 6px 16px color-mix(in srgb, var(--ce-accent) 25%, transparent); }
 .ce-logo-word { font-size: 19px; font-weight: 600; letter-spacing: -.02em; color: var(--ce-text); }
 .ce-logo-word b { font-weight: 600; color: var(--ce-accent-ink); }
 
@@ -1415,4 +1417,5 @@ if __name__ == "__main__":
     demo.queue(max_size=40)      # extra visitors wait in line instead of overloading the app
     demo.launch(share=False, server_name="0.0.0.0" if lan else None,
                 server_port=int(os.environ.get("GRADIO_SERVER_PORT", 7860)),
-                css=CSS, head=HEAD, theme=gr.themes.Base(), max_file_size="8mb", ssr_mode=False)
+                css=CSS, head=HEAD, theme=gr.themes.Base(), max_file_size="8mb", ssr_mode=False,
+                favicon_path=str(Path(__file__).resolve().parent.parent / "docs" / "logo" / "hackfindr-icon.svg"))
