@@ -773,7 +773,8 @@ HEAD = """<style>
   body, gradio-app { background: var(--ce-bg, #f5f5f8); }
   body { -webkit-font-smoothing: antialiased; margin: 0; }
   .gradio-container { max-width: 1440px !important; min-width: 0 !important; margin: 0 auto !important;
-                      padding: 0 clamp(12px, 2.4vw, 28px) 24px !important; overflow-x: hidden; }
+                      padding: 0 clamp(12px, 2.4vw, 28px) 24px !important; overflow-x: clip !important; overflow-y: visible !important; }
+  /* clip (not hidden) so the map column can stay sticky while the list scrolls */
   .gradio-container > .main { padding-left: 0 !important; padding-right: 0 !important; }
   footer { display: none !important; }
   @media (max-width: 860px) {
@@ -782,6 +783,19 @@ HEAD = """<style>
   }
 </style>
 <script>
+(function () {   // keep --ce-head equal to the sticky header's height, so the map fills the rest of the screen
+  function measure() {
+    var h = document.querySelector("#ce-header");
+    if (h) document.documentElement.style.setProperty("--ce-head", Math.round(h.getBoundingClientRect().height) + "px");
+  }
+  var wait = setInterval(function () {
+    var h = document.querySelector("#ce-header");
+    if (!h) return;
+    clearInterval(wait); measure();
+    if (window.ResizeObserver) new ResizeObserver(measure).observe(h);
+    window.addEventListener("resize", measure);
+  }, 200);
+})();
 (function () {
   function saved() { try { return localStorage.getItem("hf-theme"); } catch (e) { return null; } }
   function apply() { var m = saved(); if (m && document.body) document.body.classList.toggle("dark", m === "dark"); }
@@ -989,11 +1003,12 @@ CSS = """
 
 /* ---------- body: map + list ---------- */
 #ce-body { gap: 18px !important; margin-top: 16px; align-items: flex-start !important; }
-#ce-map-col { position: sticky; top: 132px; min-width: 0 !important; }
+/* the map stays put below the sticky header (its height is in --ce-head, set from HEAD) while the list scrolls */
+#ce-map-col { position: sticky; top: calc(var(--ce-head, 240px) + 12px); align-self: flex-start; min-width: 0 !important; }
 #ce-map-col .block, #ce-map-col .html-container, #ce-map-col .prose { padding: 0 !important; border: none !important; background: transparent !important; }
 .ce-map { position: relative; border-radius: 20px; overflow: hidden; border: 1px solid var(--ce-border); background: var(--ce-inner);
           box-shadow: var(--ce-shadow); }
-.ce-map iframe { width: 100%; height: calc(100vh - 160px); min-height: 460px; border: 0; display: block; }
+.ce-map iframe { width: 100%; height: calc(100vh - var(--ce-head, 240px) - 64px); min-height: 360px; border: 0; display: block; }
 .ce-legend { position: absolute; left: 12px; bottom: 12px; display: flex; flex-wrap: wrap; gap: 4px 12px; align-items: center;
              background: var(--ce-glass); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); color: var(--ce-text);
              border: 1px solid var(--ce-border); border-radius: 14px; padding: 7px 12px; font-size: 12px; max-width: calc(100% - 24px); }
