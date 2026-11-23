@@ -9,3 +9,5 @@ authlib
 itsdangerous
 httpx
 uvicorn
+qrcode
+ngrok

@@ -812,5 +812,897 @@
       "by": "gemma"
     },
     "at": 1795441225.5910485
+  },
+  "unstop-c67192af": {
+    "hash": "fbe8074a82a9",
+    "rules": {
+      "audience": [],
+      "open_to_all": false,
+      "degrees": [],
+      "branches": [],
+      "team_min": 1,
+      "team_max": 10,
+      "women_only": false,
+      "states": [],
+      "fee": false,
+      "note": "Online workshop",
+      "by": "gemma"
+    },
+    "at": 1795442664.8905509
+  },
+  "unstop-490d01b1": {
+    "hash": "b38e80fe14bb",
+    "rules": {
+      "audience": [
+        "graduate",
+        "professional"
+      ],
+      "open_to_all": false,
+      "degrees": [],
+      "branches": [],
+      "team_min": 1,
+      "team_max": 2,
+      "women_only": false,
+      "states": [],
+      "fee": false,
+      "note": "Targeted at finance professionals and students",
+      "by": "gemma"
+    },
+    "at": 1795442664.8905666
+  },
+  "unstop-4fa7a912": {
+    "hash": "18e99dca5ceb",
+    "rules": {
+      "audience": [],
+      "open_to_all": false,
+      "degrees": [],
+      "branches": [],
+      "team_min": 1,
+      "team_max": 2,
+      "women_only": false,
+      "states": [],
+      "fee": false,
+      "note": "",
+      "by": "gemma"
+    },
+    "at": 1795442664.8905766
+  },
+  "unstop-7c776ea9": {
+    "hash": "02701ba86dfc",
+    "rules": {
+      "audience": [],
+      "open_to_all": false,
+      "degrees": [],
+      "branches": [],
+      "team_min": 1,
+      "team_max": 1,
+      "women_only": false,
+      "states": [],
+      "fee": false,
+      "note": "",
+      "by": "gemma"
+    },
+    "at": 1795442664.890584
+  },
+  "unstop-211b32c4": {
+    "hash": "8d27cb02b1bc",
+    "rules": {
+      "audience": [
+        "ug1",
+        "ug2",
+        "ug3",
+        "ug4",
+        "ug5",
+        "pg",
+        "professional"
+      ],
+      "open_to_all": false,
+      "degrees": [],
+      "branches": [],
+      "team_min": 1,
+      "team_max": 1,
+      "women_only": false,
+      "states": [],
+      "fee": false,
+      "note": "",
+      "by": "gemma"
+    },
+    "at": 1795442664.8905923
+  },
+  "unstop-aa9d44a9": {
+    "hash": "3d7e636af2f5",
+    "rules": {
+      "audience": [],
+      "open_to_all": false,
+      "degrees": [],
+      "branches": [],
+      "team_min": 1,
+      "team_max": 2,
+      "women_only": false,
+      "states": [],
+      "fee": false,
+      "note": "Offline workshop at IIT Bombay",
+      "by": "gemma"
+    },
+    "at": 1795442664.8906004
+  },
+  "unstop-497f3845": {
+    "hash": "6b865280137d",
+    "rules": {
+      "audience": [
+        "ug1",
+        "ug2",
+        "ug3",
+        "ug4",
+        "ug5",
+        "pg"
+      ],
+      "open_to_all": false,
+      "degrees": [],
+      "branches": [],
+      "team_min": 1,
+      "team_max": 1,
+      "women_only": false,
+      "states": [],
+      "fee": false,
+      "note": "",
+      "by": "gemma"
+    },
+    "at": 1795442664.8906085
+  },
+  "unstop-4c71a733": {
+    "hash": "85fd19891fd1",
+    "rules": {
+      "audience": [],
+      "open_to_all": false,
+      "degrees": [],
+      "branches": [],
+      "team_min": 1,
+      "team_max": 1,
+      "women_only": false,
+      "states": [],
+      "fee": false,
+      "note": "",
+      "by": "gemma"
+    },
+    "at": 1795442664.8906138
+  },
+  "unstop-7ff0515c": {
+    "hash": "d63f49374803",
+    "rules": {
+      "audience": [],
+      "open_to_all": false,
+      "degrees": [],
+      "branches": [],
+      "team_min": 1,
+      "team_max": 1,
+      "women_only": false,
+      "states": [],
+      "fee": false,
+      "note": "Mandatory registration on Techfest website",
+      "by": "gemma"
+    },
+    "at": 1795442859.1286318
+  },
+  "unstop-f94254bf": {
+    "hash": "28c78a32004e",
+    "rules": {
+      "audience": [
+        "ug1",
+        "ug2",
+        "ug3",
+        "ug4",
+        "ug5",
+        "pg"
+      ],
+      "open_to_all": true,
+      "degrees": [],
+      "branches": [],
+      "team_min": 1,
+      "team_max": 1,
+      "women_only": false,
+      "states": [],
+      "fee": false,
+      "note": "Offline workshop at IIT Bombay",
+      "by": "gemma"
+    },
+    "at": 1795442859.1286445
+  },
+  "unstop-af285381": {
+    "hash": "3b66cd479728",
+    "rules": {
+      "audience": [
+        "ug1",
+        "ug2",
+        "ug3",
+        "ug4",
+        "ug5",
+        "pg"
+      ],
+      "open_to_all": false,
+      "degrees": [],
+      "branches": [],
+      "team_min": 1,
+      "team_max": 1,
+      "women_only": false,
+      "states": [],
+      "fee": false,
+      "note": "",
+      "by": "gemma"
+    },
+    "at": 1795442859.128653
+  },
+  "unstop-af3ea255": {
+    "hash": "36e11f1f5981",
+    "rules": {
+      "audience": [
+        "ug1",
+        "ug2",
+        "ug3",
+        "ug4",
+        "ug5",
+        "pg"
+      ],
+      "open_to_all": false,
+      "degrees": [],
+      "branches": [],
+      "team_min": 1,
+      "team_max": 1,
+      "women_only": false,
+      "states": [],
+      "fee": false,
+      "note": "",
+      "by": "gemma"
+    },
+    "at": 1795442859.1286595
+  },
+  "unstop-77798d25": {
+    "hash": "841b1a670863",
+    "rules": {
+      "audience": [],
+      "open_to_all": false,
+      "degrees": [],
+      "branches": [],
+      "team_min": 1,
+      "team_max": 1,
+      "women_only": false,
+      "states": [],
+      "fee": false,
+      "note": "Mandatory registration on Techfest website",
+      "by": "gemma"
+    },
+    "at": 1795442859.1286654
+  },
+  "unstop-ae4a195d": {
+    "hash": "2d7f9157521f",
+    "rules": {
+      "audience": [],
+      "open_to_all": false,
+      "degrees": [],
+      "branches": [],
+      "team_min": 1,
+      "team_max": 1,
+      "women_only": false,
+      "states": [],
+      "fee": true,
+      "note": "Requires laptop with 4GB RAM, internet, and stationery",
+      "by": "gemma"
+    },
+    "at": 1795442859.1286712
+  },
+  "unstop-49c2e8c6": {
+    "hash": "f74a9eae59e4",
+    "rules": {
+      "audience": [
+        "ug1",
+        "ug2",
+        "ug3",
+        "ug4",
+        "ug5",
+        "pg"
+      ],
+      "open_to_all": false,
+      "degrees": [],
+      "branches": [],
+      "team_min": 1,
+      "team_max": 1,
+      "women_only": false,
+      "states": [],
+      "fee": false,
+      "note": "",
+      "by": "gemma"
+    },
+    "at": 1795442859.1286771
+  },
+  "unstop-9093822e": {
+    "hash": "4725fce14af6",
+    "rules": {
+      "audience": [],
+      "open_to_all": false,
+      "degrees": [],
+      "branches": [],
+      "team_min": 1,
+      "team_max": 1,
+      "women_only": false,
+      "states": [],
+      "fee": true,
+      "note": "",
+      "by": "gemma"
+    },
+    "at": 1795442859.1286852
+  },
+  "unstop-79ac717c": {
+    "hash": "b3d05643cac2",
+    "rules": {
+      "audience": [],
+      "open_to_all": false,
+      "degrees": [],
+      "branches": [],
+      "team_min": 1,
+      "team_max": 1,
+      "women_only": false,
+      "states": [],
+      "fee": false,
+      "note": "2-Day Offline Workshop on Agentic AI & Autonomous Systems",
+      "by": "gemma"
+    },
+    "at": 1795443320.7971597
+  },
+  "unstop-25b4a3c8": {
+    "hash": "a658481c384d",
+    "rules": {
+      "audience": [
+        "ug1",
+        "ug2",
+        "ug3",
+        "ug4",
+        "ug5",
+        "pg",
+        "graduate",
+        "professional"
+      ],
+      "open_to_all": false,
+      "degrees": [],
+      "branches": [],
+      "team_min": 1,
+      "team_max": 5,
+      "women_only": false,
+      "states": [],
+      "fee": false,
+      "note": "Research paper tracks available in management, finance, and HR.",
+      "by": "gemma"
+    },
+    "at": 1795443320.7971756
+  },
+  "unstop-eb12349e": {
+    "hash": "06aaf0100554",
+    "rules": {
+      "audience": [
+        "ug1",
+        "ug2",
+        "ug3",
+        "ug4",
+        "ug5",
+        "pg",
+        "graduate",
+        "professional"
+      ],
+      "open_to_all": false,
+      "degrees": [],
+      "branches": [],
+      "team_min": 1,
+      "team_max": 1,
+      "women_only": false,
+      "states": [],
+      "fee": false,
+      "note": "Interdisciplinary research conference on convergence for science.",
+      "by": "gemma"
+    },
+    "at": 1795443320.7971866
+  },
+  "unstop-c150b8e5": {
+    "hash": "11282ad49bfe",
+    "rules": {
+      "audience": [
+        "school",
+        "ug1",
+        "ug2",
+        "ug3",
+        "ug4",
+        "ug5",
+        "pg"
+      ],
+      "open_to_all": false,
+      "degrees": [],
+      "branches": [],
+      "team_min": 2,
+      "team_max": 4,
+      "women_only": false,
+      "states": [],
+      "fee": false,
+      "note": "Aerospace and engineering challenge involving RC aircraft design.",
+      "by": "gemma"
+    },
+    "at": 1795443320.7971942
+  },
+  "unstop-d9f5584d": {
+    "hash": "e159c17e2e69",
+    "rules": {
+      "audience": [],
+      "open_to_all": false,
+      "degrees": [],
+      "branches": [],
+      "team_min": 1,
+      "team_max": 5,
+      "women_only": false,
+      "states": [],
+      "fee": true,
+      "note": "Strategic cricket auction and team management challenge.",
+      "by": "gemma"
+    },
+    "at": 1795443320.7971997
+  },
+  "unstop-2e59ff6c": {
+    "hash": "500be0dce1b5",
+    "rules": {
+      "audience": [],
+      "open_to_all": false,
+      "degrees": [],
+      "branches": [],
+      "team_min": 1,
+      "team_max": 3,
+      "women_only": false,
+      "states": [],
+      "fee": true,
+      "note": "Problem-solving and teamwork-based adventure challenge.",
+      "by": "gemma"
+    },
+    "at": 1795443320.797205
+  },
+  "unstop-be1a0863": {
+    "hash": "f35b94a2d710",
+    "rules": {
+      "audience": [],
+      "open_to_all": false,
+      "degrees": [],
+      "branches": [],
+      "team_min": 1,
+      "team_max": 2,
+      "women_only": false,
+      "states": [],
+      "fee": true,
+      "note": "Engineering challenge to protect an egg from a fall.",
+      "by": "gemma"
+    },
+    "at": 1795443320.7972105
+  },
+  "unstop-e31a0927": {
+    "hash": "b2fca451dbe0",
+    "rules": {
+      "audience": [],
+      "open_to_all": false,
+      "degrees": [],
+      "branches": [],
+      "team_min": 1,
+      "team_max": 1,
+      "women_only": false,
+      "states": [],
+      "fee": true,
+      "note": "Minecraft PvP combat competition in a knockout format.",
+      "by": "gemma"
+    },
+    "at": 1795443320.7972152
+  },
+  "unstop-b49cafbe": {
+    "hash": "74bb316c5c29",
+    "rules": {
+      "audience": [],
+      "open_to_all": true,
+      "degrees": [],
+      "branches": [],
+      "team_min": 1,
+      "team_max": 1,
+      "women_only": false,
+      "states": [],
+      "fee": true,
+      "note": "Swiss-style tournament played on Lichess.org or lab systems.",
+      "by": "gemma"
+    },
+    "at": 1795443479.2905035
+  },
+  "unstop-970d7aa0": {
+    "hash": "a1307b49bfca",
+    "rules": {
+      "audience": [],
+      "open_to_all": false,
+      "degrees": [],
+      "branches": [],
+      "team_min": 2,
+      "team_max": 4,
+      "women_only": false,
+      "states": [],
+      "fee": true,
+      "note": "A two-round event consisting of an MCQ quiz and a technology auction.",
+      "by": "gemma"
+    },
+    "at": 1795443479.2905114
+  },
+  "unstop-2d2c4705": {
+    "hash": "67b4940b3a1b",
+    "rules": {
+      "audience": [],
+      "open_to_all": false,
+      "degrees": [],
+      "branches": [],
+      "team_min": 1,
+      "team_max": 1,
+      "women_only": false,
+      "states": [],
+      "fee": true,
+      "note": "Offline 1v1 tournament played on consoles using FIFA 26 / EA Sports FC 26.",
+      "by": "gemma"
+    },
+    "at": 1795443479.2905173
+  },
+  "unstop-c094d5a3": {
+    "hash": "e9355e12018b",
+    "rules": {
+      "audience": [],
+      "open_to_all": false,
+      "degrees": [],
+      "branches": [],
+      "team_min": 1,
+      "team_max": 4,
+      "women_only": false,
+      "states": [],
+      "fee": true,
+      "note": "Tournament involves group stages and grand finals in custom rooms.",
+      "by": "gemma"
+    },
+    "at": 1795443479.2905226
+  },
+  "unstop-528b79f7": {
+    "hash": "965527e9bfe6",
+    "rules": {
+      "audience": [],
+      "open_to_all": false,
+      "degrees": [],
+      "branches": [],
+      "team_min": 1,
+      "team_max": 4,
+      "women_only": false,
+      "states": [],
+      "fee": true,
+      "note": "Web development challenge with themes revealed on the spot.",
+      "by": "gemma"
+    },
+    "at": 1795443479.2905283
+  },
+  "unstop-6d587831": {
+    "hash": "a1965494f09f",
+    "rules": {
+      "audience": [],
+      "open_to_all": false,
+      "degrees": [],
+      "branches": [],
+      "team_min": 2,
+      "team_max": 2,
+      "women_only": false,
+      "states": [],
+      "fee": true,
+      "note": "Debugging competition that requires teams of exactly 2 members.",
+      "by": "gemma"
+    },
+    "at": 1795443479.2905333
+  },
+  "unstop-49172837": {
+    "hash": "ca41d2fb5f7e",
+    "rules": {
+      "audience": [],
+      "open_to_all": false,
+      "degrees": [],
+      "branches": [],
+      "team_min": 1,
+      "team_max": 2,
+      "women_only": false,
+      "states": [],
+      "fee": true,
+      "note": "Competitive coding event with multiple difficulty levels.",
+      "by": "gemma"
+    },
+    "at": 1795443479.2905385
+  },
+  "devpost-76d77e63": {
+    "hash": "e5c4c8bd1718",
+    "rules": {
+      "audience": [],
+      "open_to_all": false,
+      "degrees": [],
+      "branches": [],
+      "team_min": null,
+      "team_max": null,
+      "women_only": false,
+      "states": [],
+      "fee": null,
+      "note": "Themes include DevOps, Machine Learning/AI, and Productivity.",
+      "by": "gemma"
+    },
+    "at": 1795443479.2905486
+  },
+  "devpost-f4556722": {
+    "hash": "a82f5613d678",
+    "rules": {
+      "audience": [],
+      "open_to_all": false,
+      "degrees": [],
+      "branches": [],
+      "team_min": null,
+      "team_max": null,
+      "women_only": false,
+      "states": [],
+      "fee": null,
+      "note": "",
+      "by": "gemma"
+    },
+    "at": 1795443736.400028
+  },
+  "devpost-d78c7ea7": {
+    "hash": "f07090ad7666",
+    "rules": {
+      "audience": [],
+      "open_to_all": false,
+      "degrees": [],
+      "branches": [],
+      "team_min": null,
+      "team_max": null,
+      "women_only": false,
+      "states": [],
+      "fee": null,
+      "note": "",
+      "by": "gemma"
+    },
+    "at": 1795443736.4000354
+  },
+  "devpost-fc424194": {
+    "hash": "06f0e2a03b81",
+    "rules": {
+      "audience": [],
+      "open_to_all": false,
+      "degrees": [],
+      "branches": [],
+      "team_min": null,
+      "team_max": null,
+      "women_only": false,
+      "states": [],
+      "fee": null,
+      "note": "",
+      "by": "gemma"
+    },
+    "at": 1795443736.4000397
+  },
+  "devpost-afcf99a0": {
+    "hash": "02bbc140231f",
+    "rules": {
+      "audience": [],
+      "open_to_all": false,
+      "degrees": [],
+      "branches": [],
+      "team_min": null,
+      "team_max": null,
+      "women_only": false,
+      "states": [],
+      "fee": null,
+      "note": "",
+      "by": "gemma"
+    },
+    "at": 1795443736.4000442
+  },
+  "devpost-0251a155": {
+    "hash": "a0f8652e8392",
+    "rules": {
+      "audience": [],
+      "open_to_all": false,
+      "degrees": [],
+      "branches": [],
+      "team_min": null,
+      "team_max": null,
+      "women_only": false,
+      "states": [],
+      "fee": null,
+      "note": "",
+      "by": "gemma"
+    },
+    "at": 1795443736.4000487
+  },
+  "devpost-a33b40c5": {
+    "hash": "24966d51989a",
+    "rules": {
+      "audience": [],
+      "open_to_all": false,
+      "degrees": [],
+      "branches": [],
+      "team_min": null,
+      "team_max": null,
+      "women_only": false,
+      "states": [],
+      "fee": null,
+      "note": "",
+      "by": "gemma"
+    },
+    "at": 1795443736.4000525
+  },
+  "devpost-a2cb4cbe": {
+    "hash": "e4b0a4a3b2f0",
+    "rules": {
+      "audience": [],
+      "open_to_all": false,
+      "degrees": [],
+      "branches": [],
+      "team_min": null,
+      "team_max": null,
+      "women_only": false,
+      "states": [],
+      "fee": null,
+      "note": "",
+      "by": "gemma"
+    },
+    "at": 1795443736.4000566
+  },
+  "devpost-bbd23005": {
+    "hash": "2dfe079a481d",
+    "rules": {
+      "audience": [],
+      "open_to_all": false,
+      "degrees": [],
+      "branches": [],
+      "team_min": null,
+      "team_max": null,
+      "women_only": false,
+      "states": [],
+      "fee": null,
+      "note": "",
+      "by": "gemma"
+    },
+    "at": 1795443736.4000611
+  },
+  "devpost-29430ba8": {
+    "hash": "fcd19b61192d",
+    "rules": {
+      "audience": [],
+      "open_to_all": false,
+      "degrees": [],
+      "branches": [],
+      "team_min": null,
+      "team_max": null,
+      "women_only": false,
+      "states": [],
+      "fee": null,
+      "note": "",
+      "by": "gemma"
+    },
+    "at": 1795443847.9354384
+  },
+  "devpost-e4b976d5": {
+    "hash": "8029bfd90b40",
+    "rules": {
+      "audience": [],
+      "open_to_all": false,
+      "degrees": [],
+      "branches": [],
+      "team_min": null,
+      "team_max": null,
+      "women_only": false,
+      "states": [],
+      "fee": null,
+      "note": "",
+      "by": "gemma"
+    },
+    "at": 1795443847.935445
+  },
+  "devpost-0df56276": {
+    "hash": "dd168cb3cb52",
+    "rules": {
+      "audience": [],
+      "open_to_all": false,
+      "degrees": [],
+      "branches": [],
+      "team_min": null,
+      "team_max": null,
+      "women_only": false,
+      "states": [],
+      "fee": null,
+      "note": "",
+      "by": "gemma"
+    },
+    "at": 1795443847.9354496
+  },
+  "devpost-c2ea9ab2": {
+    "hash": "b8ad8ab5046c",
+    "rules": {
+      "audience": [],
+      "open_to_all": false,
+      "degrees": [],
+      "branches": [],
+      "team_min": null,
+      "team_max": null,
+      "women_only": false,
+      "states": [],
+      "fee": null,
+      "note": "",
+      "by": "gemma"
+    },
+    "at": 1795443847.9354541
+  },
+  "devpost-5ec11c9c": {
+    "hash": "d6712ff217d0",
+    "rules": {
+      "audience": [],
+      "open_to_all": false,
+      "degrees": [],
+      "branches": [],
+      "team_min": null,
+      "team_max": null,
+      "women_only": true,
+      "states": [],
+      "fee": null,
+      "note": "",
+      "by": "gemma"
+    },
+    "at": 1795443847.935459
+  },
+  "devpost-f5680c12": {
+    "hash": "ce20ac1cb609",
+    "rules": {
+      "audience": [],
+      "open_to_all": false,
+      "degrees": [],
+      "branches": [],
+      "team_min": null,
+      "team_max": null,
+      "women_only": false,
+      "states": [],
+      "fee": null,
+      "note": "",
+      "by": "gemma"
+    },
+    "at": 1795443847.9354625
+  },
+  "devpost-7a37a2f3": {
+    "hash": "b8ad8ab5046c",
+    "rules": {
+      "audience": [],
+      "open_to_all": false,
+      "degrees": [],
+      "branches": [],
+      "team_min": null,
+      "team_max": null,
+      "women_only": false,
+      "states": [],
+      "fee": null,
+      "note": "",
+      "by": "gemma"
+    },
+    "at": 1795443847.9354672
+  },
+  "devpost-8b32107d": {
+    "hash": "b8ad8ab5046c",
+    "rules": {
+      "audience": [
+        "pg"
+      ],
+      "open_to_all": false,
+      "degrees": [
+        "MCA"
+      ],
+      "branches": [],
+      "team_min": null,
+      "team_max": null,
+      "women_only": false,
+      "states": [],
+      "fee": null,
+      "note": "",
+      "by": "gemma"
+    },
+    "at": 1795443847.9354737
   }
 }

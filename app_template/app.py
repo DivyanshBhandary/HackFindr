@@ -31,6 +31,7 @@ import events
 import gemma_client
 import mailer
 import reminders
+import usage
 from harness.tools import filter_events
 
 TITLE = "HackFindr"
@@ -172,6 +173,7 @@ def best_scores(user, found):
     """Gemma's Best fit scores for this student, {} if it can't run (no profile, error)."""
     if not eligibility.has_profile(user):
         return {}
+    usage.count("bestfit")
     try:
         return eligibility.best_fit(user, found, accounts.fit_checks(user["id"]), ask=ask_gemma)
     except Exception:
@@ -544,6 +546,7 @@ def nearest_city(latlon):
 
 def open_details(event_id, found, request=None):
     """Show the details view for one event."""
+    usage.count("details")
     ev = next((e for e in found if e["id"] == event_id), None)
     ev = ev or next((e for e in events.load_events() if e["id"] == event_id), None)
     if ev is None:   # e.g. an old share link: say so in the panel, the list underneath keeps working
@@ -606,6 +609,7 @@ def ask_about_event(question, history, event_id, request: gr.Request = None):
         yield "", history
         return
     question = question[:500]
+    usage.count("chat")
     blocked = limit_message(request)
     if blocked:
         yield "", history + [{"role": "user", "content": question}, {"role": "assistant", "content": blocked}]
@@ -693,6 +697,7 @@ def fit_check(me, event_id, request: gr.Request = None):
     facts = event_facts(event_id)
     if facts is None:
         return "Open an event first.", me
+    usage.count("fitcheck")
     prompt = f"Event (JSON): {json.dumps(facts, ensure_ascii=False)}\nStudent: {me}"
     try:
         answer = ask_gemma(prompt, FIT_RULE)
@@ -797,6 +802,7 @@ def extract_poster(image_path, request: gr.Request = None):
     empty = [""] * len(POSTER_FIELDS)
     if not image_path:
         return "Please upload a poster image first.", *empty
+    usage.count("poster")
     blocked = limit_message(request)
     if blocked:
         return blocked, *empty
@@ -955,6 +961,23 @@ def sync_saved(browser_saved, request: gr.Request = None):
         return gr.skip(), True
     merged = accounts.set_saved(user["id"], accounts.saved_ids(user["id"]) + sorted(saved_ids(browser_saved)))
     return json.dumps(merged), True
+
+
+def count_visit(request: gr.Request = None):
+    usage.count("visit", visitor_id(request))
+
+
+def count_search():
+    usage.count("search")
+
+
+def send_feedback(rating, useful, comment):
+    """The 💬 Feedback box: anonymous rating, favourite feature and an optional comment."""
+    stars = {"★": 1, "★★": 2, "★★★": 3, "★★★★": 4, "★★★★★": 5}
+    if rating not in stars:
+        return "Pick a star rating first.", gr.update(), gr.update()
+    usage.add_feedback(stars[rating], useful or "", comment or "")
+    return "Thank you! 💜 Your feedback helps us improve HackFindr.", gr.update(value=None), gr.update(value="")
 
 
 def store_saved(browser_saved, synced, request: gr.Request = None):
@@ -1375,6 +1398,18 @@ button.ce-details-btn { position: absolute !important; inset: 0; width: 100%; he
 #ce-chat-q textarea, #ce-chat-q input { border-radius: 14px !important; }
 
 /* poster panel */
+#ce-feedback-btn { position: fixed !important; right: 18px; bottom: 18px; z-index: 90; width: auto !important;
+                   min-width: 0 !important; border-radius: 999px !important; padding: 10px 16px !important;
+                   background: var(--ce-accent) !important; color: #fff !important; border: 0 !important;
+                   box-shadow: 0 8px 24px rgba(109, 93, 252, .35) !important; font-weight: 600 !important; }
+#ce-feedback-panel { position: fixed !important; right: 18px; bottom: 70px; z-index: 91; width: min(360px, calc(100vw - 32px)) !important;
+                     max-height: calc(100vh - 100px); overflow-y: auto; border: 1px solid var(--ce-border) !important;
+                     border-radius: 20px !important; padding: 16px !important; background: var(--ce-card) !important;
+                     box-shadow: 0 20px 50px rgba(20, 16, 50, .25) !important; }
+#ce-feedback-panel .ce-panel-title { font-size: 16px; font-weight: 600; }
+#ce-feedback-panel .ce-panel-title small { display: block; font-size: 12.5px; font-weight: 400; color: var(--ce-muted); }
+#ce-feedback-panel .form, #ce-feedback-panel .block { border: none !important; background: transparent !important; box-shadow: none !important; }
+#ce-stars label { font-size: 15px; color: #f5b000; }
 :is(#ce-poster-panel, #ce-profile-panel) { border: 1px solid var(--ce-border) !important; border-radius: 20px !important; padding: 18px !important;
                    background: var(--ce-card) !important; margin-top: 14px; box-shadow: var(--ce-shadow); }
 :is(#ce-poster-panel, #ce-profile-panel) .ce-panel-title { font-size: 17px; font-weight: 600; letter-spacing: -.01em; }
@@ -1612,11 +1647,29 @@ with gr.Blocks(title=TITLE) as demo:
         saved_box = gr.Textbox("[]", elem_id="ce-saved", show_label=False, container=False)  # hidden, filled by the browser
         coords = gr.Textbox(elem_id="ce-coords", show_label=False, container=False)  # hidden, "lat,lon,time" from the browser
 
+        feedback_btn = gr.Button("💬 Feedback", elem_id="ce-feedback-btn", size="sm")
+        with gr.Column(visible=False, elem_id="ce-feedback-panel") as feedback_panel:
+            with gr.Row(equal_height=False):
+                gr.HTML('<div class="ce-panel-title">How was HackFindr?<small>Anonymous. Takes 10 seconds.</small></div>')
+                feedback_close = gr.Button("✕", size="sm", scale=0, min_width=40, elem_classes="ce-close")
+            f_rating = gr.Radio(["★", "★★", "★★★", "★★★★", "★★★★★"], label="Your rating", elem_id="ce-stars")
+            f_useful = gr.Dropdown(usage.FEATURES, label="What helped you most?", value=None)
+            f_comment = gr.Textbox(label="Anything to add? (optional)", lines=2, max_length=500,
+                                   placeholder="What should we fix or add?")
+            f_send = gr.Button("Send feedback", variant="primary", size="sm")
+            f_status = gr.Markdown("")
+
         # ----- wiring -----
         list_inputs = [city, radius, chip, sort, fetch_count, saved_box, q]
         list_outputs = [map_box, found_state, count, limit_state, strip_box]
         opens = [main_view, details_view, details_box, selected_state, cal_btn]   # everything that opens details
         city.submit(show_events, list_inputs, list_outputs)
+        for trigger in (city.submit, radius.change, chip.change, sort.change):   # anonymous usage count
+            trigger(count_search, None, None, show_progress="hidden")
+        demo.load(count_visit, None, None, show_progress="hidden")
+        feedback_btn.click(lambda: (gr.update(visible=True), ""), None, [feedback_panel, f_status])
+        feedback_close.click(lambda: gr.update(visible=False), None, feedback_panel)
+        f_send.click(send_feedback, [f_rating, f_useful, f_comment], [f_status, f_rating, f_comment])
         radius.change(show_events, list_inputs, list_outputs)
         chip.change(show_events, list_inputs, list_outputs)
         sort.change(show_events, list_inputs, list_outputs)
@@ -1694,8 +1747,35 @@ def lan_address():
         return sock.getsockname()[0]
 
 
+def start_tunnel(port):
+    """python app.py --tunnel: a public HTTPS link through ngrok, so anyone can open the app and sign in.
+    Needs NGROK_AUTHTOKEN and NGROK_DOMAIN in .env, and HACKFINDR_PUBLIC_URL set to the same https address."""
+    try:
+        import ngrok
+    except ImportError:
+        print("Tunnel not started: run  .venv\\Scripts\\python -m pip install ngrok  first.")
+        return None
+    if not os.environ.get("NGROK_AUTHTOKEN", "").strip():
+        print("Tunnel not started: add NGROK_AUTHTOKEN to .env (from dashboard.ngrok.com).")
+        return None
+    domain = os.environ.get("NGROK_DOMAIN", "").strip() or None
+    try:
+        listener = ngrok.forward(f"127.0.0.1:{port}", authtoken_from_env=True, domain=domain)
+    except Exception as error:
+        print(f"Tunnel not started: {error}")
+        return None
+    url = listener.url().rstrip("/")
+    print(f"Public HTTPS link (works on any network): {url}")
+    if auth.PUBLIC_URL != url:
+        print(f"  Heads up: set HACKFINDR_PUBLIC_URL={url} in .env and restart, or Google sign-in will fail on this link.")
+    else:
+        print("  Sign in through this link (not localhost). Google needs this redirect URI: " + url + "/auth")
+    return listener
+
+
 if __name__ == "__main__":
     # python app_template/app.py --lan   lets phones and laptops on the same Wi-Fi open the app.
+    # python app_template/app.py --tunnel   adds a public HTTPS link through ngrok (see start_tunnel).
     lan = "--lan" in sys.argv
     print("Starting... open this address in your browser: http://127.0.0.1:7860")
     if lan:
@@ -1713,4 +1793,7 @@ if __name__ == "__main__":
                      favicon_path=str(Path(__file__).resolve().parent.parent / "docs" / "logo" / "hackfindr-icon.svg"))
     sign_in = {"google": "Google sign-in is on.", "demo": "Demo sign-in is on (no Google keys in .env)."}
     print(sign_in.get(auth.sign_in_mode(), "Sign-in is off."))
+    print(f"QR code page for your demo table: http://127.0.0.1:{port}/share")
+    print(f"Usage and feedback stats (keep this link private): http://127.0.0.1:{port}/stats?key={usage.stats_key()}")
+    tunnel = start_tunnel(port) if "--tunnel" in sys.argv else None   # kept in a variable so it stays open
     uvicorn.run(app, host="0.0.0.0" if lan else "127.0.0.1", port=port, log_level="warning")
