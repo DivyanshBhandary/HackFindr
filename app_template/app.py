@@ -24,6 +24,8 @@ import folium
 from folium.plugins import MarkerCluster
 import gradio as gr
 
+import accounts
+import auth
 import events
 import gemma_client
 from harness.tools import filter_events
@@ -769,6 +771,89 @@ def save_poster(title, ev_type, when, mode, city, eligibility, requirements, lin
 
 # ---------- look ----------
 
+# ---------- accounts: sign-in, profile, saved events ----------
+
+PROFILE_KEYS = ["name", "college", "city", "year", "branch", "skills", "interests", "team_size"]
+
+
+def account_html(user):
+    """The header's account area: a sign-in link, or nothing (the Profile button shows instead)."""
+    if user:
+        return ""
+    mode = auth.sign_in_mode()
+    if not mode:
+        return ""
+    label = "Sign in with Google" if mode == "google" else "Sign in (demo)"
+    return (f'<a class="ce-signin" href="/login" title="{label}">'
+            f'<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" '
+            f'stroke-linecap="round"><circle cx="12" cy="8" r="4"/><path d="M4 21c1.5-4 4.5-6 8-6s6.5 2 8 6"/></svg>'
+            f'<span>Sign in</span></a>')
+
+
+def profile_button(user):
+    if not user:
+        return gr.update(visible=False)
+    first = (user.get("name") or user["email"]).split()[0][:14]
+    return gr.update(visible=True, value=f"👤 {first}")
+
+
+def profile_values(user):
+    user = user or {}
+    return [gr.update(value=user.get(k, "")) for k in PROFILE_KEYS]
+
+
+def profile_intro(user):
+    if not user:
+        return ""
+    how = "Google" if user["provider"] == "google" else "the demo sign-in (only on this computer)"
+    return (f'<div class="ce-panel-title">Your profile<small>Signed in as {esc(user["email"])} with {how}. '
+            "HackFindr uses these details to suggest events that suit you.</small></div>")
+
+
+def load_account(request: gr.Request):
+    """Runs when the page opens: header button, profile form and its intro."""
+    user = auth.current_user(request)
+    return account_html(user), profile_button(user), profile_intro(user), *profile_values(user)
+
+
+def save_profile(name, college, city, year, branch, skills, interests, team_size, request: gr.Request):
+    user = auth.current_user(request)
+    if not user:
+        return "Sign in first.", gr.update(), gr.update()
+    values = [name, college, city, year, branch, skills, interests, team_size]
+    user = accounts.update_profile(user["id"], **dict(zip(PROFILE_KEYS, values)))
+    return "Profile saved ✓", profile_button(user), profile_intro(user)
+
+
+def delete_account(confirm, request: gr.Request = None):
+    # refusals raise gr.Error so the "sign out and reload" step after this (a .success) does not run
+    user = auth.current_user(request)
+    if not user:
+        raise gr.Error("You are not signed in.")
+    if not confirm:
+        raise gr.Error("Tick the box first to confirm.")
+    accounts.delete_user(user["id"])
+    request.session.pop("uid", None)
+    return "Your account and everything saved with it were deleted.", gr.update(visible=False)
+
+
+def sync_saved(browser_saved, request: gr.Request = None):
+    """On page open: merge this browser's stars with the account's, and keep both the same."""
+    user = auth.current_user(request)
+    if not user:
+        return gr.skip(), True
+    merged = accounts.set_saved(user["id"], accounts.saved_ids(user["id"]) + sorted(saved_ids(browser_saved)))
+    return json.dumps(merged), True
+
+
+def store_saved(browser_saved, synced, request: gr.Request = None):
+    """A star was clicked: copy the list to the account (does nothing when signed out).
+    Waits for sync_saved first, so the page-open value can't wipe stars saved on another device."""
+    user = auth.current_user(request)
+    if user and synced:
+        accounts.set_saved(user["id"], saved_ids(browser_saved))
+
+
 # Runs in the page <head>: brings back the saved day/night choice, and Esc closes the details panel.
 HEAD = """<style>
   /* page-level rules live here because Gradio scopes everything in css= to inside the app */
@@ -993,6 +1078,22 @@ CSS = """
                  background: linear-gradient(135deg, var(--ce-accent), var(--ce-accent-2)) !important;
                  box-shadow: 0 6px 18px color-mix(in srgb, var(--ce-accent) 30%, transparent); }
 #ce-poster-btn:hover { filter: brightness(1.06); }
+/* account: "Sign in" link when signed out, "👤 Name" button when signed in */
+#ce-account { padding: 0 !important; border: none !important; background: transparent !important; min-width: 0 !important;
+              flex: none !important; width: auto !important; }
+#ce-profile-btn { flex: none !important; }
+#ce-account:empty, #ce-account:not(:has(a)) { display: none !important; }
+.ce-signin { display: inline-flex; align-items: center; gap: 7px; height: 42px; padding: 0 16px; border-radius: 999px;
+             border: 1px solid var(--ce-border); background: var(--ce-card); color: var(--ce-text) !important;
+             font-weight: 600; font-size: 14px; white-space: nowrap; text-decoration: none !important; }
+.ce-signin:hover { border-color: var(--ce-accent); }
+#ce-profile-btn { height: 42px; padding: 0 16px !important; border-radius: 999px !important; white-space: nowrap;
+                  border: 1px solid var(--ce-border) !important; background: var(--ce-card) !important;
+                  color: var(--ce-text) !important; font-weight: 600; }
+#ce-profile-btn:hover { border-color: var(--ce-accent) !important; }
+#ce-profile-actions { align-items: center !important; gap: 14px !important; }
+.ce-signout { color: var(--ce-muted) !important; font-size: 14px; text-decoration: underline; }
+#ce-delete { border: 1px solid var(--ce-border) !important; border-radius: 14px !important; margin-top: 6px; }
 
 /* filter chips */
 #ce-chips .wrap { display: flex; gap: 8px; flex-wrap: wrap; }
@@ -1146,17 +1247,17 @@ button.ce-details-btn { position: absolute !important; inset: 0; width: 100%; he
 #ce-chat-q textarea, #ce-chat-q input { border-radius: 14px !important; }
 
 /* poster panel */
-#ce-poster-panel { border: 1px solid var(--ce-border) !important; border-radius: 20px !important; padding: 18px !important;
+:is(#ce-poster-panel, #ce-profile-panel) { border: 1px solid var(--ce-border) !important; border-radius: 20px !important; padding: 18px !important;
                    background: var(--ce-card) !important; margin-top: 14px; box-shadow: var(--ce-shadow); }
-#ce-poster-panel .ce-panel-title { font-size: 17px; font-weight: 600; letter-spacing: -.01em; }
-#ce-poster-panel .ce-panel-title small { display: block; font-size: 13px; font-weight: 400; color: var(--ce-muted); margin-top: 2px; }
-#ce-poster-panel .form, #ce-poster-panel .block { border: none !important; background: transparent !important; box-shadow: none !important; }
-#ce-poster-panel textarea, #ce-poster-panel input[type=text] { background: var(--ce-inner) !important; border: 1px solid var(--ce-border) !important;
+:is(#ce-poster-panel, #ce-profile-panel) .ce-panel-title { font-size: 17px; font-weight: 600; letter-spacing: -.01em; }
+:is(#ce-poster-panel, #ce-profile-panel) .ce-panel-title small { display: block; font-size: 13px; font-weight: 400; color: var(--ce-muted); margin-top: 2px; }
+:is(#ce-poster-panel, #ce-profile-panel) .form, :is(#ce-poster-panel, #ce-profile-panel) .block { border: none !important; background: transparent !important; box-shadow: none !important; }
+:is(#ce-poster-panel, #ce-profile-panel) textarea, :is(#ce-poster-panel, #ce-profile-panel) input[type=text] { background: var(--ce-inner) !important; border: 1px solid var(--ce-border) !important;
                   border-radius: 12px !important; padding: 9px 12px !important; color: var(--ce-text) !important; }
-#ce-poster-panel textarea:focus, #ce-poster-panel input[type=text]:focus { border-color: var(--ce-accent) !important; }
-#ce-poster-panel .ce-field-row { gap: 10px !important; }
-#ce-poster-panel .image-container, #ce-poster-panel [data-testid=image] { border-radius: 14px; background: var(--ce-inner); }
-#ce-poster-panel .ce-close { border-radius: 999px !important; }
+:is(#ce-poster-panel, #ce-profile-panel) textarea:focus, :is(#ce-poster-panel, #ce-profile-panel) input[type=text]:focus { border-color: var(--ce-accent) !important; }
+:is(#ce-poster-panel, #ce-profile-panel) .ce-field-row { gap: 10px !important; }
+:is(#ce-poster-panel, #ce-profile-panel) .image-container, :is(#ce-poster-panel, #ce-profile-panel) [data-testid=image] { border-radius: 14px; background: var(--ce-inner); }
+:is(#ce-poster-panel, #ce-profile-panel) .ce-close { border-radius: 999px !important; }
 
 /* live data (local only) */
 #ce-data { margin-top: 18px; border: 1px solid var(--ce-border) !important; border-radius: 16px !important; background: var(--ce-card) !important; }
@@ -1168,7 +1269,7 @@ button.ce-details-btn { position: absolute !important; inset: 0; width: 100%; he
 
 /* ---------- phone ---------- */
 /* laptops and tablets: the radius buttons need ~480px, so they move to their own line */
-@media (min-width: 861px) and (max-width: 1180px) {
+@media (min-width: 861px) and (max-width: 1440px) {
   #ce-top { flex-wrap: wrap !important; row-gap: 10px !important; }
   #ce-city { flex: 1 1 220px !important; max-width: none; min-width: 200px !important; }
   #ce-radius { order: 5; flex: 1 1 100% !important; }
@@ -1187,6 +1288,14 @@ button.ce-details-btn { position: absolute !important; inset: 0; width: 100%; he
   #ce-poster-btn::before { content: "+"; font-size: 22px; font-weight: 500; }
   #ce-near { order: 1; width: 42px; min-width: 42px !important; padding: 0 !important; font-size: 0 !important; }   /* icon only */
   #ce-near::before { content: "◎"; font-size: 20px; }
+  /* account: icon only, in the same row as the theme and poster buttons */
+  #ce-account, #ce-profile-btn { order: 2; }
+  #ce-top { column-gap: 6px !important; }
+  #ce-top > :first-child { min-width: 0 !important; flex: 0 1 auto !important; }
+  #ce-profile-btn { width: 42px; min-width: 42px !important; padding: 0 !important; font-size: 0 !important; }
+  #ce-profile-btn::before { content: "👤"; font-size: 18px; }
+  .ce-signin { width: 42px; padding: 0; justify-content: center; }
+  .ce-signin span { display: none; }
   #ce-city { order: 3; flex: 1 1 100% !important; max-width: none; }
   #ce-radius { order: 4; flex: 1 1 100% !important; width: 100% !important; overflow: hidden !important; }
   #ce-radius .wrap { display: flex; overflow-x: auto; width: 100%; max-width: 100%; scrollbar-width: none; }
@@ -1226,6 +1335,7 @@ with gr.Blocks(title=TITLE) as demo:
     found_state = gr.State(FIRST_FOUND)   # the events currently shown
     selected_state = gr.State("")         # id of the last opened event
     limit_state = gr.State(PAGE)          # how many cards the list shows
+    synced_state = gr.State(False)        # True once this page merged its stars with the account
     profile = gr.BrowserState("", storage_key="hf-profile")   # "About you", remembered in this browser
 
     with gr.Column():
@@ -1242,6 +1352,8 @@ with gr.Blocks(title=TITLE) as demo:
                     gr.HTML("", elem_classes="ce-spacer", scale=1, min_width=0)
                     theme_btn = gr.Button("Switch day or night", elem_id="ce-theme-btn", scale=0, min_width=42)
                     poster_btn = gr.Button("+ Add from poster", elem_id="ce-poster-btn", scale=0, min_width=150)
+                    signin_box = gr.HTML("", elem_id="ce-account", scale=0, min_width=0)
+                    profile_btn = gr.Button("👤 Profile", elem_id="ce-profile-btn", scale=0, min_width=110, visible=False)
                 chip = gr.Radio(CHIPS, value="All", show_label=False, elem_id="ce-chips", container=False)
                 strip_box = gr.HTML(FIRST_STRIP, elem_id="ce-strip-box")
 
@@ -1263,6 +1375,32 @@ with gr.Blocks(title=TITLE) as demo:
                                 poster_boxes += [gr.Textbox(label=name.replace("_", " ").capitalize(), min_width=160)
                                                  for name in pair]
                         add_btn = gr.Button("Add to map", variant="primary")
+
+            with gr.Column(visible=False, elem_id="ce-profile-panel") as profile_panel:
+                with gr.Row(equal_height=False):
+                    profile_title = gr.HTML("")
+                    profile_close = gr.Button("✕ Close", size="sm", scale=0, min_width=90, elem_classes="ce-close")
+                with gr.Row(elem_classes="ce-field-row"):
+                    p_name = gr.Textbox(label="Name", max_length=80, min_width=160)
+                    p_college = gr.Textbox(label="College", placeholder="IIT Bhilai", max_length=120, min_width=160)
+                with gr.Row(elem_classes="ce-field-row"):
+                    p_city = gr.Textbox(label="City", placeholder="Raipur", max_length=60, min_width=160)
+                    p_year = gr.Dropdown(accounts.YEARS, label="Year", value="", min_width=160)
+                with gr.Row(elem_classes="ce-field-row"):
+                    p_branch = gr.Textbox(label="Branch", placeholder="CSE", max_length=60, min_width=160)
+                    p_team = gr.Textbox(label="Usual team size", placeholder="3", max_length=10, min_width=160)
+                p_skills = gr.Textbox(label="Skills", placeholder="Python, React, ML", max_length=300)
+                p_interests = gr.Textbox(label="Interests", placeholder="AI, fintech, social impact", max_length=300)
+                with gr.Row(elem_id="ce-profile-actions"):
+                    p_save = gr.Button("Save profile", variant="primary", scale=0, min_width=140)
+                    gr.HTML('<a class="ce-signout" href="/logout" '
+                            'onclick="try{localStorage.removeItem(\'hf-saved\')}catch(e){}">Sign out</a>')
+                p_status = gr.Markdown("")
+                with gr.Accordion("Delete my account", open=False, elem_id="ce-delete"):
+                    gr.Markdown("This removes your profile and saved events from HackFindr for good.")
+                    p_confirm = gr.Checkbox(label="Yes, delete my account and everything saved with it")
+                    p_delete = gr.Button("Delete account", variant="stop", size="sm")
+                profile_boxes = [p_name, p_college, p_city, p_year, p_branch, p_skills, p_interests, p_team]
 
             with gr.Row(elem_id="ce-body", equal_height=False):
                 with gr.Column(scale=7, elem_id="ce-map-col", min_width=0):
@@ -1366,8 +1504,20 @@ with gr.Blocks(title=TITLE) as demo:
         # a star click only needs a redraw when the Saved chip is showing
         saved_box.change(lambda *a: show_events(*a) if a[2] == "Saved" else (gr.skip(),) * len(list_outputs),
                          list_inputs, list_outputs)
+        # signed in: the browser's stars and the account's are merged once, then every star click is copied over
         demo.load(None, None, saved_box,
-                  js="() => { try { return localStorage.getItem('hf-saved') || '[]'; } catch (e) { return '[]'; } }")
+                  js="() => { try { return localStorage.getItem('hf-saved') || '[]'; } catch (e) { return '[]'; } }") \
+            .then(sync_saved, saved_box, [saved_box, synced_state]) \
+            .then(None, saved_box, None,
+                  js="(v) => { try { localStorage.setItem('hf-saved', v || '[]'); } catch (e) {} }")
+        saved_box.change(store_saved, [saved_box, synced_state], None, show_progress="hidden")
+        demo.load(load_account, None, [signin_box, profile_btn, profile_title] + profile_boxes)
+        profile_btn.click(lambda: (gr.update(visible=True), ""), None, [profile_panel, p_status])
+        profile_close.click(lambda: gr.update(visible=False), None, profile_panel)
+        p_save.click(save_profile, profile_boxes, [p_status, profile_btn, profile_title])
+        p_delete.click(delete_account, p_confirm, [p_status, profile_btn]) \
+            .success(None, None, None, js="() => { try { localStorage.removeItem('hf-saved'); } catch (e) {} "
+                                       "setTimeout(() => location.href = '/?signed_out=1', 1500); }")
         pin_box.change(open_from_pin, [pin_box, found_state], opens) \
             .then(fill_summary, [selected_state, found_state], details_box, show_progress="hidden")
         q.change(show_events, list_inputs, list_outputs, trigger_mode="always_last", show_progress="hidden")
@@ -1415,7 +1565,11 @@ if __name__ == "__main__":
     if PUBLIC:
         events.start_auto_refresh()
     demo.queue(max_size=40)      # extra visitors wait in line instead of overloading the app
-    demo.launch(share=False, server_name="0.0.0.0" if lan else None,
-                server_port=int(os.environ.get("GRADIO_SERVER_PORT", 7860)),
-                css=CSS, head=HEAD, theme=gr.themes.Base(), max_file_size="8mb", ssr_mode=False,
-                favicon_path=str(Path(__file__).resolve().parent.parent / "docs" / "logo" / "hackfindr-icon.svg"))
+    # Gradio runs inside a small FastAPI app that adds /login, /auth and /logout (see auth.py).
+    import uvicorn
+    port = int(os.environ.get("GRADIO_SERVER_PORT", 7860))
+    app = auth.build(demo, css=CSS, head=HEAD, theme=gr.themes.Base(), max_file_size="8mb", ssr_mode=False,
+                     favicon_path=str(Path(__file__).resolve().parent.parent / "docs" / "logo" / "hackfindr-icon.svg"))
+    sign_in = {"google": "Google sign-in is on.", "demo": "Demo sign-in is on (no Google keys in .env)."}
+    print(sign_in.get(auth.sign_in_mode(), "Sign-in is off."))
+    uvicorn.run(app, host="0.0.0.0" if lan else "127.0.0.1", port=port, log_level="warning")

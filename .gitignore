@@ -7,3 +7,4 @@ wheelhouse/
 .pytest_cache/
 events_backup.json
 *.tmp
+data/

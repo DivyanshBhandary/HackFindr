@@ -5,3 +5,7 @@ requests
 geopy
 folium
 beautifulsoup4
+authlib
+itsdangerous
+httpx
+uvicorn
