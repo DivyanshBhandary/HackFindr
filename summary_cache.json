@@ -733,5 +733,70 @@
     "description": "Participate in a fast-paced competition to build and deploy a functional MVP based on a problem statement revealed at the start of the event. Teams will leverage AI tools for prompting, development, and testing to transform an idea into a working product within a limited timeframe.",
     "eligibility": "Open to students from any college; teams must consist of 2–3 participants.",
     "requirements": "Register via the Tech Habba website and bring a laptop, charger, GitHub access, AI tool accounts, and any necessary API credentials."
+  },
+  "unstop-e33ecea2": {
+    "description": "Continuum 2026 is a two-round open innovation hackathon hosted by NEXSUS at MMMUT, Gorakhpur, focusing on solving real-world problems. Student teams can develop software, hardware, or hybrid solutions, starting with an online idea submission followed by an offline grand finale. It is an opportunity to showcase innovation and technical implementation to a panel of industry experts.",
+    "eligibility": "Student teams interested in software, hardware, or interdisciplinary technology solutions.",
+    "requirements": "An online idea submission (Abstract or PPT) for Round 1, and physical attendance at MMMUT, Gorakhpur for the offline Round 2 build sprint."
+  },
+  "unstop-0218a874": {
+    "description": "Craft N Code – Delhi State Qualifier is a coding competition where students solve real-world problems through innovation and technology. Participants will compete in quiz and online hackathon rounds for a chance to advance to the National Hackathon at IIIT Bhubaneswar. It is an excellent platform to showcase your technical expertise, network with peers, and build your professional portfolio.",
+    "eligibility": "Students currently studying in colleges located in Delhi.",
+    "requirements": "Team formation, registration starting August 30, 2026, and participation in the quiz and online hackathon rounds."
+  },
+  "unstop-ccdcc327": {
+    "description": "The Craft N Code Haryana State Qualifier is a competition for student innovators to showcase their coding and problem-solving skills through technology-driven solutions. Participants will compete for a chance to advance to the National Hackathon hosted by IIIT Bhubaneswar.",
+    "eligibility": "Students studying in colleges located in Haryana.",
+    "requirements": "Form a team to participate in the quiz and online hackathon rounds."
+  },
+  "unstop-48d1eecb": {
+    "description": "HackSprint 3.0 is a national-level, 36-hour hackathon where innovators can build technology-driven solutions for real-world challenges across tracks like Agrotech, MedTech, and EduTech. The event begins with an online idea screening and culminates in an offline final round at Karpagam Academy of Higher Education in Coimbatore.",
+    "eligibility": "Developers, designers, and innovators from across India.",
+    "requirements": "A team-based PowerPoint presentation outlining a problem statement, proposed solution, innovation, feasibility, and expected impact."
+  },
+  "unstop-60e13afe": {
+    "description": "This free 3-day virtual hackathon challenges student builders to create agentic AI systems designed for real-world tasks. Rather than just building for success, you will focus on how your AI handles failure modes, human oversight, and error reversibility.",
+    "eligibility": "Students worldwide, working solo or in teams of up to 4.",
+    "requirements": "No experience required; must build a working agentic AI system for a specific person's task."
+  },
+  "unstop-b90c1152": {
+    "description": "HackEra 2.0 is an online student hackathon by Erazone where you can turn innovative ideas into real-world impact using modern tech stacks. Compete in teams of 2 to 6 to solve pressing Indian problems and vie for a share of a 10k prize pool.",
+    "eligibility": "All currently enrolled students.",
+    "requirements": "Teams of 2-6 members; must submit a Git repository link, a presentation (PPT), and a prototype demonstration video."
+  },
+  "unstop-dd622e7b": {
+    "description": "AI BuildFest 2026 is a 48-hour online hackathon where you can build custom AI solutions to tackle real-world challenges. Instead of just using existing APIs, you will use the Adaption platform to prepare datasets and train your own unique models. It is a hands-on opportunity to develop a functional prototype and showcase your model-building skills.",
+    "eligibility": "Teams of 2–4 members, including students, developers, and AI enthusiasts.",
+    "requirements": "Must use the Adaption platform for dataset preparation and model training to build a functional AI application."
+  },
+  "unstop-a2449d50": {
+    "description": "League of Nations is a diplomatic simulation where teams represent different nations to debate global issues and craft strategic communication plans. The event is designed to test your negotiation, public speaking, and analytical abilities in a high-stakes international setting.",
+    "eligibility": "Open to students/participants.",
+    "requirements": "Business Formal dress code, English proficiency, and adherence to a code of conduct (maximum 10% AI/plagiarism)."
+  },
+  "unstop-aa9d44a9": {
+    "description": "This intensive two-day workshop at IIT Bombay covers the complete Data Science lifecycle, moving from Python and SQL fundamentals to advanced Machine Learning and Generative AI. Students will participate in hands-on sessions and complete an end-to-end capstone project to gain practical industry experience. Participants also receive a certificate and free access to Techfest events.",
+    "eligibility": "Learners from technology, engineering, mathematics, business, and analytics backgrounds.",
+    "requirements": "Laptop/PC (min 4 GB RAM), internet connectivity, notepad, and pen."
+  },
+  "unstop-be01b0a4": {
+    "description": "Craft N Code is a state-level hackathon designed for students in Tamil Nadu to showcase their coding, innovation, and problem-solving skills. Successful participants will have the opportunity to advance to the Craft N Code National Hackathon hosted by IIIT Bhubaneswar. It serves as a platform to build real-world solutions while networking with fellow developers.",
+    "eligibility": "Students studying in colleges located within Tamil Nadu.",
+    "requirements": "Register a team to participate in the quiz and online hackathon rounds."
+  },
+  "unstop-d2005daa": {
+    "description": "Health Hackathon 3.0 is an innovation challenge hosted by VIT Bhopal in collaboration with Johns Hopkins University to develop solutions for global healthcare access. Students can propose ideas in areas like AI, mental health, and low-cost healthcare tools to solve real-world medical challenges. It is a unique opportunity to present high-impact projects and compete for a ₹2 Lakh prize pool.",
+    "eligibility": "Innovators, students, and researchers.",
+    "requirements": "Submit project proposals by 31 October 2026."
+  },
+  "unstop-740a6399": {
+    "description": "This short film competition invites students to use storytelling to raise awareness about environmental issues and sustainability. You can create anything from documentaries to animations, focusing on topics like climate change, water conservation, or waste management. It is a great opportunity to showcase your filmmaking skills while advocating for the planet.",
+    "eligibility": "College and university students across India; individual or teams of up to 5 members.",
+    "requirements": "3-10 minute films in English, Hindi, or Gujarati, submitted with full team details, synopsis, and film link via the official portal."
+  },
+  "unstop-f356a9af": {
+    "description": "The Black-Box Protocol is a 36-hour, high-intensity offline engineering hackathon focused on building architecturally resilient and scalable systems rather than simple prototypes. Through an open innovation model, teams have total freedom to choose their own problems and technology stacks to solve real-world challenges. The event emphasizes technical depth through rigorous architectural audits and stress testing.",
+    "eligibility": "Teams of 2–4 members, with a mandatory requirement of at least one female builder per team.",
+    "requirements": "Successful completion of online registration, idea screening, and receiving a shortlist invitation for the offline event."
   }
 }

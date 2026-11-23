@@ -664,5 +664,97 @@
   "zzqxwv": null,
   "xyzabc": null,
   "xyzq": null,
-  "nowheresville": null
+  "nowheresville": null,
+  "delhi": [
+    28.6664535,
+    77.2169781
+  ],
+  "ooty, tamil nadu": [
+    11.4126769,
+    76.7030504
+  ],
+  "nandambakkam, tamil nadu": [
+    13.0166484,
+    80.1911885
+  ],
+  "sangareddi, telangana": null,
+  "telangana": [
+    17.8495919,
+    79.1151663
+  ],
+  "surat, gujarat": [
+    21.2094892,
+    72.8317058
+  ],
+  "patna, bihar": [
+    25.6093239,
+    85.1235252
+  ],
+  "changanacheri, kerala": null,
+  "kerala": [
+    10.3528744,
+    76.5120396
+  ],
+  "navi mumbai, maharashtra": [
+    19.0308262,
+    73.0198537
+  ],
+  "gwalior, madhya pradesh": [
+    26.2037247,
+    78.1573628
+  ],
+  "bidar, karnataka": [
+    18.0207297,
+    77.2487204
+  ],
+  "indore, madhya pradesh": [
+    22.7203616,
+    75.8681996
+  ],
+  "tumakuru, karnataka": [
+    13.4192512,
+    76.8810004
+  ],
+  "wardha, maharashtra": [
+    20.8256231,
+    78.6131455
+  ],
+  "davanagere, karnataka": [
+    14.2558835,
+    75.8303421
+  ],
+  "hubballi, karnataka": [
+    15.3518378,
+    75.1379848
+  ],
+  "kozhikode, kerala": [
+    11.2450558,
+    75.7754716
+  ],
+  "ojone building, bengaluru.": null,
+  "bengaluru.": [
+    12.9767936,
+    77.590082
+  ],
+  "thiruvananthapuram, keralam": [
+    8.5225232,
+    76.9397463
+  ],
+  "ernakulam, keralam": [
+    10.1364414,
+    76.4257117
+  ],
+  "rajpura, punjab": [
+    30.4776857,
+    76.5937658
+  ],
+  "vidisha, madhya pradesh": [
+    23.8463004,
+    77.8370209
+  ],
+  "sivakasi, tamil nadu": [
+    9.4627995,
+    77.7891013
+  ],
+  "azhikal, tamil nadu": null
 }
