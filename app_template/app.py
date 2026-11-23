@@ -11,14 +11,17 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))  # so we can imp
 
 import html
 import json
+import math
 import os
 import re
 import tempfile
 import time
 from collections import defaultdict
 from datetime import date
+from urllib.parse import quote
 
 import folium
+from folium.plugins import MarkerCluster
 import gradio as gr
 
 import events
@@ -238,6 +241,16 @@ def card_html(ev):
             f'<div class="ce-tags">{tags_html(ev)}</div></div>{star}<span class="ce-chev" aria-hidden="true">›</span>')
 
 
+def stats_html(found):
+    """Four numbers above the list: nearby, online, free, closing this week."""
+    near = sum(1 for e in found if e.get("distance_km") is not None)
+    free = sum(1 for e in found if e.get("is_free") is True)
+    week = sum(1 for e in found if days_left(e) is not None and 0 <= days_left(e) <= 7)
+    tiles = [(near, "nearby", ""), (len(found) - near, "online", ""), (free, "free", ""), (week, "closing this week", "hot")]
+    return '<div class="ce-stats">' + "".join(
+        f'<div class="ce-stat {cls}"><b>{n}</b><span>{label}</span></div>' for n, label, cls in tiles) + "</div>"
+
+
 def deadline_strip(found):
     """Events whose registration closes within 7 days, soonest first."""
     soon = sorted((e for e in found if days_left(e) is not None and 0 <= days_left(e) <= 7), key=days_left)[:10]
@@ -303,6 +316,8 @@ MAP_STYLE = """<style>
   .ce-tip img { width: 44px; height: 44px; flex: none; border-radius: 10px; object-fit: cover; }
   .ce-closes { color: var(--hot); font-weight: 500; }
   .leaflet-interactive { cursor: pointer; }
+  .marker-cluster, .marker-cluster div { background: rgba(109, 93, 252, .25) !important; }
+  .marker-cluster div { background: #6d5dfc !important; color: #fff !important; font-weight: 600; }
   .leaflet-bar { border: 1px solid var(--border) !important; border-radius: 12px !important; overflow: hidden;
     box-shadow: 0 6px 18px rgba(20, 16, 50, .12) !important; }
   .leaflet-bar a { background: var(--card) !important; color: var(--title) !important; border-color: var(--border) !important;
@@ -331,6 +346,9 @@ def map_html(lat, lon, radius, found):
                         fill_opacity=0.18).add_to(m)
     folium.CircleMarker([lat, lon], radius=6, color="white", weight=2.5, fill=True, fill_color=HERE, fill_opacity=1,
                         tooltip="You are here").add_to(m)
+    # close pins merge into a numbered bubble that splits apart as you zoom in
+    cluster = MarkerCluster(options={"showCoverageOnHover": False, "maxClusterRadius": 45,
+                                     "spiderfyOnMaxZoom": True}).add_to(m)
     pins = []  # (folium's JavaScript name for the pin, event id)
     for ev in found:
         if ev.get("lat") is None:
@@ -339,7 +357,7 @@ def map_html(lat, lon, radius, found):
         tip = f'<div class="ce-tip">{logo}<div><b>{esc(ev["title"])}</b>{meta_line(ev)}</div></div>'
         pin = folium.CircleMarker([ev["lat"], ev["lon"]], radius=8, color="white", weight=2.5, fill=True,
                                   fill_color=pin_color(ev), fill_opacity=1,
-                                  tooltip=folium.Tooltip(tip, direction="top", offset=(0, -6))).add_to(m)
+                                  tooltip=folium.Tooltip(tip, direction="top", offset=(0, -6))).add_to(cluster)
         pins.append((pin.get_name(), ev["id"]))
     d = radius / 111  # about 111 km per degree, so the whole circle fits on screen
     bounds = [[lat - d, lon - d], [lat + d, lon + d]]
@@ -351,6 +369,19 @@ def map_html(lat, lon, radius, found):
     # re-measure once the frame has its final size, and again whenever the frame is resized
     refit = f"{m.get_name()}.invalidateSize(); {m.get_name()}.fitBounds({json.dumps(bounds)});"
     clicks += f"setTimeout(() => {{ {refit} }}, 300); window.addEventListener('resize', () => {{ {refit} }});"
+    # Pointing at a card grows its pin (the page sends {hl: id}); pointing at a pin outlines its card.
+    # A pin hidden inside a cluster is not on the map, so it is only brought forward when it is showing.
+    lookup = ",".join(f"{json.dumps(i)}: {name}" for name, i in pins)
+    clicks += ("const PINS = {" + lookup + "};"
+               "window.addEventListener('message', e => {"
+               "  if (!e.data || !('hl' in e.data)) return;"
+               "  Object.entries(PINS).forEach(([id, p]) => p.setRadius(id === e.data.hl ? 13 : 8));"
+               "  const p = PINS[e.data.hl]; if (p && p._map) p.bringToFront(); });"
+               "function hl(id, on) {"
+               "  const c = parent.document.querySelector('.ce-card-html[data-id=\"' + id + '\"]');"
+               "  if (c) c.closest('.ce-card').classList.toggle('ce-hl', on); }")
+    clicks += "".join(f"{name}.on('mouseover', () => hl({json.dumps(i)}, true));"
+                      f"{name}.on('mouseout', () => hl({json.dumps(i)}, false));" for name, i in pins)
     m.get_root().html.add_child(folium.Element(
         "<script>window.addEventListener('load', () => {"
         "function pick(id) { const box = parent.document.querySelector('#ce-pin-id textarea');"
@@ -378,10 +409,8 @@ def show_events(city, radius, chip, sort, fetch_count=None, saved="[]", query=""
     lat, lon, found = find_events(city, radius, chip, sort, saved_ids(saved), query)
     if lat is None:
         return (f"<p class='ce-error'>Couldn't find the city “{esc(city)}”. Check the spelling or try a bigger city nearby.</p>",
-                [], "No events", PAGE, "")
-    near = sum(1 for e in found if e.get("distance_km") is not None)
-    header = f"**{near}** nearby · **{len(found) - near}** online"
-    return map_html(lat, lon, int(radius), found), found, header, PAGE, deadline_strip(found)
+                [], stats_html([]), PAGE, "")
+    return map_html(lat, lon, int(radius), found), found, stats_html(found), PAGE, deadline_strip(found)
 
 
 def refresh(city, radius, chip, sort, fetch_count=DEFAULT_FETCH_COUNT, saved="[]", query="", *args):
@@ -412,6 +441,22 @@ def ics_file(ev):
     path = Path(tempfile.gettempdir()) / f"hackfindr-{safe_id}.ics"
     path.write_text("\r\n".join(lines), encoding="utf-8")
     return str(path)
+
+
+def nearest_city(latlon):
+    """The city, among cities that have events, closest to the browser's location."""
+    try:
+        lat, lon = map(float, str(latlon).split(",")[:2])
+    except ValueError:
+        return gr.update()
+    places = {(e["city"], e["lat"], e["lon"]) for e in events.load_events()
+              if e.get("city") and e.get("lat") is not None}
+    if not places:
+        return gr.update()
+    k = math.cos(math.radians(lat))
+    name = min(places, key=lambda p: (p[1] - lat) ** 2 + ((p[2] - lon) * k) ** 2)[0]
+    gr.Info(f"Showing events near {name}")
+    return name
 
 
 def open_details(event_id, found, request=None):
@@ -555,6 +600,73 @@ def fit_check(me, event_id, request: gr.Request = None):
         return gemma_client.describe_error(error), me
 
 
+TEAM_RULE = ("Write a short, friendly WhatsApp message (under 70 words) from a student inviting friends to form a "
+             "team for this event. Include the name, date, team size and the register link if given. "
+             "Plain text, at most one emoji. Use only the details given.")
+
+
+def team_message(event_id, request: gr.Request = None):
+    """One Gemma call: a ready-to-send WhatsApp invite, plus an 'Open in WhatsApp' link."""
+    blocked = limit_message(request)
+    if blocked:
+        return blocked, ""
+    facts = event_facts(event_id)
+    if facts is None:
+        return "Open an event first.", ""
+    ev = next(e for e in events.load_events() if e["id"] == event_id)
+    facts.update(date=nice_date(event_date(ev)), closes=nice_date(ev.get("end")), link=safe_url(ev.get("register_url")))
+    try:
+        text = ask_gemma(json.dumps(facts, ensure_ascii=False), TEAM_RULE)
+    except Exception as error:
+        return gemma_client.describe_error(error), ""
+    if not text:
+        return "Gemma sent back no text. Press the button again.", ""
+    return text, wa_link(text)
+
+
+def wa_link(text):
+    """'Open in WhatsApp' with the message filled in. A click handler in HEAD swaps in the edited text."""
+    text = str(text or "").strip()
+    if not text:
+        return ""
+    return (f'<a class="ce-wa" href="https://wa.me/?text={quote(text)}" target="_blank" rel="noopener">'
+            f'Open in WhatsApp ↗</a>')
+
+
+CMP_RULE = ("Compare TWO events for a student, using only the details given. Give a markdown table whose first "
+            "header cell is empty and whose other two header cells are the two event titles (shortened if long); "
+            "it has exactly 3 rows: Date, Who can join, Team size. Then one line starting 'Pick:' that names the "
+            "event to choose and says why. Call the events by their titles, never 'Event A' or 'Event B'. "
+            "If the student described themselves, use that.")
+
+
+def compare_choices(found, event_id):
+    """Fill 'Compare with' from the events in view, never listing the one that is open."""
+    others = [(e["title"][:60], e["id"]) for e in (found or []) if e["id"] != event_id][:60]
+    return gr.update(choices=others, value=None)
+
+
+def compare_events(a_id, b_id, me, request: gr.Request = None):
+    """One Gemma call: the open event side by side with the chosen one."""
+    if not b_id:
+        return "Pick a second event to compare with."
+    blocked = limit_message(request)
+    if blocked:
+        return blocked
+    a, b = event_facts(a_id), event_facts(b_id)
+    if not a or not b:
+        return "One of those events is gone. Refresh and try again."
+    for facts, eid in ((a, a_id), (b, b_id)):   # give Gemma the dates in plain words, like the team message
+        ev = next(e for e in events.load_events() if e["id"] == eid)
+        facts.update(date=nice_date(event_date(ev)), registration_closes=nice_date(ev.get("end")))
+    prompt = (f"Event A: {json.dumps(a, ensure_ascii=False)}\nEvent B: {json.dumps(b, ensure_ascii=False)}\n"
+              f"Student: {str(me or '')[:300]}")
+    try:
+        return ask_gemma(prompt, CMP_RULE) or "Gemma sent back no text. Press Compare again."
+    except Exception as error:
+        return gemma_client.describe_error(error)
+
+
 def make_opener(event_id):
     """The click handler for one card's Details button."""
     def opener(found, request: gr.Request = None):
@@ -666,6 +778,23 @@ HEAD = """<style>
     var box = document.querySelector("#ce-saved textarea");
     if (box) { box.value = JSON.stringify(ids); box.dispatchEvent(new Event("input", { bubbles: true })); }
   }, true);
+  // "Open in WhatsApp": send whatever is in the message box now, so the student's edits are kept
+  document.addEventListener("click", function (e) {
+    var a = e.target.closest && e.target.closest("a.ce-wa");
+    var box = document.querySelector("#ce-team textarea");
+    if (a && box && box.value.trim()) a.href = "https://wa.me/?text=" + encodeURIComponent(box.value.trim());
+  }, true);
+  // pointing at a card grows its pin on the map (the map lives in its own frame, so we post a message)
+  var hovered = null;
+  document.addEventListener("mouseover", function (e) {
+    var card = e.target.closest && e.target.closest(".ce-card");
+    var inner = card && card.querySelector(".ce-card-html");
+    var id = inner ? inner.dataset.id : null;
+    if (id === hovered) return;
+    hovered = id;
+    var frame = document.querySelector(".ce-map iframe");
+    if (frame && frame.contentWindow) frame.contentWindow.postMessage({ hl: id }, "*");
+  });
   // "Closing this week" strip: a tap opens that event, the same way a map pin does
   document.addEventListener("click", function (e) {
     var b = e.target.closest && e.target.closest(".ce-dl[data-id]");
@@ -725,11 +854,20 @@ CSS = """
   --layout-gap: 12px; --block-shadow: none; --shadow-drop: none; --shadow-drop-lg: none;
   --font: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", sans-serif;
 }
-#ce-pin-id, #ce-saved { display: none !important; }
+#ce-pin-id, #ce-saved, #ce-coords { display: none !important; }
+#ce-near { border-radius: 999px !important; height: 42px; white-space: nowrap; }
 .ce-star { position: relative; z-index: 3; align-self: flex-start; border: 0; background: none; padding: 2px;
            font-size: 19px; line-height: 1; color: var(--ce-border-2); cursor: pointer; }
 .ce-star:hover { color: var(--ce-muted); }
 .ce-star.on { color: #f5b000; }
+.ce-card.ce-hl { border-color: var(--ce-accent) !important; box-shadow: 0 0 0 3px var(--ce-accent-bg); }
+/* stats tiles */
+.ce-stats { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; }
+.ce-stat { background: var(--ce-card); border: 1px solid var(--ce-border); border-radius: 14px; padding: 8px 12px; }
+.ce-stat b { display: block; font-size: 20px; font-weight: 650; letter-spacing: -.02em; color: var(--ce-text); }
+.ce-stat span { font-size: 12px; color: var(--ce-muted); }
+.ce-stat.hot b { color: var(--ce-hot); }
+@media (max-width: 860px) { .ce-stats { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 /* closing-this-week strip */
 #ce-strip-box { padding: 0 !important; background: transparent !important; border: none !important;
                 contain: inline-size; min-width: 0 !important; max-width: 100%; }   /* scroll inside, never widen the page */
@@ -828,8 +966,9 @@ CSS = """
 .ce-error { color: var(--ce-hot); padding: 24px; background: var(--ce-card); border: 1px solid var(--ce-border); border-radius: 16px; margin: 0; }
 
 #ce-list-col { min-width: 0 !important; gap: 10px !important; }
-#ce-list-head { align-items: center; justify-content: space-between; flex-wrap: nowrap !important; gap: 10px; }
+#ce-list-head { align-items: center; justify-content: flex-end; flex-wrap: wrap !important; gap: 10px; }
 #ce-list-head > * { flex: 0 1 auto !important; min-width: 0 !important; width: auto !important; }
+#ce-list-head > #ce-count { flex: 1 1 100% !important; width: 100% !important; padding: 0 !important; }   /* stats get their own line, sort sits under them */
 #ce-count, #ce-count p { color: var(--ce-muted); font-size: 13px; margin: 0; }
 #ce-count strong { color: var(--ce-text); font-weight: 600; }
 
@@ -930,6 +1069,27 @@ button.ce-details-btn { position: absolute !important; inset: 0; width: 100%; he
 #ce-fit .block { border: none !important; background: transparent !important; }
 #ce-fit-btn { border-radius: 999px !important; align-self: flex-start; }
 #ce-fit-out:empty { display: none; }
+#ce-team-card { border: 1px solid var(--ce-border) !important; border-radius: 18px !important; padding: 14px !important;
+                background: var(--ce-card) !important; gap: 10px !important; margin-bottom: 14px; }
+#ce-team-card .ce-chat-head { font-weight: 600; font-size: 14px; }
+#ce-team-card .ce-chat-head span { color: var(--ce-accent-ink); }
+#ce-team-card .ce-chat-head small { display: block; color: var(--ce-muted); font-weight: 400; font-size: 12px; margin-top: 2px; }
+#ce-team-card .block { border: none !important; background: transparent !important; }
+#ce-team-btn { border-radius: 999px !important; align-self: flex-start; }
+.ce-wa { display: inline-block; background: #25d366; color: #fff !important; text-decoration: none !important;
+         font-weight: 600; font-size: 13px; border-radius: 999px; padding: 8px 16px; }
+.ce-wa:hover { filter: brightness(1.05); }
+#ce-cmp-card { border: 1px solid var(--ce-border) !important; border-radius: 18px !important; padding: 14px !important;
+               background: var(--ce-card) !important; gap: 10px !important; margin-bottom: 14px; }
+#ce-cmp-card .ce-chat-head { font-weight: 600; font-size: 14px; }
+#ce-cmp-card .ce-chat-head span { color: var(--ce-accent-ink); }
+#ce-cmp-card .ce-chat-head small { display: block; color: var(--ce-muted); font-weight: 400; font-size: 12px; margin-top: 2px; }
+#ce-cmp-card .block { border: none !important; background: transparent !important; }
+#ce-cmp-btn { border-radius: 999px !important; align-self: flex-end; }
+#ce-cmp-out:empty { display: none; }
+#ce-cmp-out table { font-size: 13px; width: 100%; }
+#ce-cmp-out th, #ce-cmp-out td { word-break: normal; overflow-wrap: break-word; }
+#ce-cmp-out td:first-child { white-space: nowrap; font-weight: 600; }
 #ce-chat-q textarea, #ce-chat-q input { border-radius: 14px !important; }
 
 /* poster panel */
@@ -972,6 +1132,8 @@ button.ce-details-btn { position: absolute !important; inset: 0; width: 100%; he
   #ce-theme-btn { order: 1; margin-left: auto; }
   #ce-poster-btn { order: 2; width: 42px; min-width: 42px !important; padding: 0 !important; font-size: 0 !important; }
   #ce-poster-btn::before { content: "+"; font-size: 22px; font-weight: 500; }
+  #ce-near { order: 1; width: 42px; min-width: 42px !important; padding: 0 !important; font-size: 0 !important; }   /* icon only */
+  #ce-near::before { content: "◎"; font-size: 20px; }
   #ce-city { order: 3; flex: 1 1 100% !important; max-width: none; }
   #ce-radius { order: 4; flex: 1 1 100% !important; width: 100% !important; overflow: hidden !important; }
   #ce-radius .wrap { display: flex; overflow-x: auto; width: 100%; max-width: 100%; scrollbar-width: none; }
@@ -1021,6 +1183,7 @@ with gr.Blocks(title=TITLE) as demo:
                     gr.HTML(LOGO_HTML, scale=0, min_width=150)
                     city = gr.Textbox(DEFAULT_CITY, show_label=False, placeholder="Search a city", scale=2,
                                       elem_id="ce-city", min_width=160, container=False)
+                    near_btn = gr.Button("◎ Near me", elem_id="ce-near", scale=0, min_width=110)
                     radius = gr.Radio(RADIUS_CHOICES, value=DEFAULT_RADIUS, show_label=False, scale=0,
                                       elem_id="ce-radius", container=False)
                     gr.HTML("", elem_classes="ce-spacer", scale=1, min_width=0)
@@ -1054,7 +1217,7 @@ with gr.Blocks(title=TITLE) as demo:
                     q = gr.Textbox(placeholder="Search titles, e.g. AI or IIT", show_label=False,
                                    container=False, elem_id="ce-q", max_length=80)
                     with gr.Row(elem_id="ce-list-head"):
-                        count = gr.Markdown(FIRST_COUNT, elem_id="ce-count")
+                        count = gr.HTML(FIRST_COUNT, elem_id="ce-count")
                         sort = gr.Radio(["Nearest", "Closing soon"], value="Nearest", show_label=False,
                                         elem_id="ce-sort", container=False, scale=0)
 
@@ -1065,7 +1228,7 @@ with gr.Blocks(title=TITLE) as demo:
                         for ev in found[:limit]:
                             classes = ["ce-card", "selected"] if ev["id"] == selected else ["ce-card"]
                             with gr.Column(elem_classes=classes):
-                                gr.HTML(f'<div class="ce-card-html">{card_html(ev)}</div>')
+                                gr.HTML(f'<div class="ce-card-html" data-id="{esc(ev["id"])}">{card_html(ev)}</div>')
                                 details_btn = gr.Button(f"Open {ev['title'][:60]}", elem_classes="ce-details-btn", size="sm")
                                 details_btn.click(make_opener(ev["id"]), found_state, opens)
                         if len(found) > limit:
@@ -1096,6 +1259,20 @@ with gr.Blocks(title=TITLE) as demo:
                                         max_length=300, elem_id="ce-me")
                     fit_btn = gr.Button("✦ Is this for me?", variant="primary", size="sm", elem_id="ce-fit-btn")
                     fit_out = gr.Markdown(elem_id="ce-fit-out")
+                with gr.Column(elem_id="ce-team-card"):
+                    gr.HTML('<div class="ce-chat-head"><span>✉</span> Find teammates'
+                            '<small>Gemma drafts a short invite you can edit, copy or send on WhatsApp.</small></div>')
+                    team_btn = gr.Button("✉ Draft a team message", size="sm", elem_id="ce-team-btn")
+                    team_text = gr.Textbox(label="Message", lines=4, buttons=["copy"], elem_id="ce-team",
+                                           interactive=True, max_length=1000)   # editable before sending
+                    team_link = gr.HTML(elem_id="ce-team-link")
+                with gr.Column(elem_id="ce-cmp-card"):
+                    gr.HTML('<div class="ce-chat-head"><span>⇄</span> Compare with another event'
+                            '<small>Gemma puts the two side by side and says which to pick.</small></div>')
+                    with gr.Row(equal_height=True):
+                        other = gr.Dropdown(label="Compare with", choices=[], scale=3, elem_id="ce-other")
+                        cmp_btn = gr.Button("✦ Compare", scale=1, size="sm", elem_id="ce-cmp-btn", min_width=110)
+                    cmp_out = gr.Markdown(elem_id="ce-cmp-out")
                 with gr.Column(elem_id="ce-chat"):
                     gr.HTML('<div class="ce-chat-head"><span>✦</span> Ask about this event'
                             '<small>Answers use only this event’s details.</small></div>')
@@ -1105,6 +1282,7 @@ with gr.Blocks(title=TITLE) as demo:
 
         pin_box = gr.Textbox(elem_id="ce-pin-id", show_label=False, container=False)  # hidden, filled by map clicks
         saved_box = gr.Textbox("[]", elem_id="ce-saved", show_label=False, container=False)  # hidden, filled by the browser
+        coords = gr.Textbox(elem_id="ce-coords", show_label=False, container=False)  # hidden, "lat,lon,time" from the browser
 
         # ----- wiring -----
         list_inputs = [city, radius, chip, sort, fetch_count, saved_box, q]
@@ -1122,6 +1300,11 @@ with gr.Blocks(title=TITLE) as demo:
         fit_btn.click(fit_check, [me_box, selected_state], [fit_out, profile])
         demo.load(lambda p: p, profile, me_box)                 # fill "About you" from last time
         selected_state.change(lambda: "", None, fit_out)        # new event, fresh verdict
+        team_btn.click(team_message, selected_state, [team_text, team_link])
+        selected_state.change(lambda: ("", ""), None, [team_text, team_link])   # new event, fresh message
+        selected_state.change(compare_choices, [found_state, selected_state], other)
+        selected_state.change(lambda: "", None, cmp_out)                          # new event, fresh comparison
+        cmp_btn.click(compare_events, [selected_state, other, me_box], cmp_out)
         # The day/night switch runs only in the browser and is remembered (see HEAD).
         theme_btn.click(None, js=THEME_JS)
         # a star click only needs a redraw when the Saved chip is showing
@@ -1142,6 +1325,13 @@ with gr.Blocks(title=TITLE) as demo:
           else prompt("Copy this link", url);
         }""")
         demo.load(open_from_link, found_state, opens)
+        near_btn.click(None, None, coords, js="""() => new Promise(done => {
+          if (!navigator.geolocation) return done("");
+          navigator.geolocation.getCurrentPosition(
+            p => done(p.coords.latitude + "," + p.coords.longitude + "," + Date.now()),
+            () => done(""), { timeout: 8000 });
+        })""")
+        coords.change(nearest_city, coords, city).then(show_events, list_inputs, list_outputs)
         poster_btn.click(lambda: gr.update(visible=True), None, poster_panel)
         close_btn.click(lambda: gr.update(visible=False), None, poster_panel)
         extract_btn.click(extract_poster, poster_img, [poster_status] + poster_boxes)
