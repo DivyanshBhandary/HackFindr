@@ -466,22 +466,39 @@ def open_details(event_id, found, request=None):
     if ev is None:   # e.g. an old share link: say so in the panel, the list underneath keeps working
         return (gr.update(), gr.update(visible=True), "<p class='ce-error'>Event not found. It may have closed.</p>",
                 event_id, gr.update(visible=False))
+    # Open at once with what we have; a missing AI summary is filled in afterwards by fill_summary,
+    # so the panel never waits on Gemma.
     note = ""
-    if not ev.get("ai_summary") and ev.get("details_text"):
-        blocked = limit_message(request)
-        try:
-            if blocked:
-                raise RuntimeError(blocked)
-            ev = events.summarize_one(dict(ev))  # one Gemma call, then saved for everyone
-            for i, e in enumerate(found):        # so the card list shows it too
-                if e["id"] == event_id:
-                    found[i] = {**e, **ev}
-        except Exception as error:
-            note = f"<p class='ce-caption'>AI summary not available right now: {esc(gemma_client.describe_error(error))}</p>"
+    if needs_summary(ev):
+        note = "<p class='ce-caption'>✦ Writing the AI summary…</p>"
     # the list stays where it was underneath; the details panel opens over it
     has_dates = bool(to_date(event_date(ev)) or to_date(ev.get("end")))
     cal = gr.update(value=ics_file(ev) if has_dates else None, visible=has_dates)
     return gr.update(), gr.update(visible=True), details_html(ev, note), event_id, cal
+
+
+def needs_summary(ev):
+    return bool(ev and not ev.get("ai_summary") and ev.get("details_text"))
+
+
+def fill_summary(event_id, found, request: gr.Request = None):
+    """Runs right after the details panel opens: one Gemma call, then the panel is redrawn."""
+    ev = next((e for e in found if e["id"] == event_id), None)
+    ev = ev or next((e for e in events.load_events() if e["id"] == event_id), None)
+    if not needs_summary(ev):
+        return gr.skip()
+    note = ""
+    blocked = limit_message(request)
+    try:
+        if blocked:
+            raise RuntimeError(blocked)
+        ev = events.summarize_one(dict(ev))  # one Gemma call, then saved for everyone
+        for i, e in enumerate(found):        # so the card list shows it too
+            if e["id"] == event_id:
+                found[i] = {**e, **ev}
+    except Exception as error:
+        note = f"<p class='ce-caption'>AI summary not available right now: {esc(gemma_client.describe_error(error))}</p>"
+    return details_html(ev, note)
 
 
 def open_from_pin(value, found, request: gr.Request = None):
@@ -1250,7 +1267,9 @@ with gr.Blocks(title=TITLE) as demo:
                             with gr.Column(elem_classes=classes):
                                 gr.HTML(f'<div class="ce-card-html" data-id="{esc(ev["id"])}">{card_html(ev)}</div>')
                                 details_btn = gr.Button(f"Open {ev['title'][:60]}", elem_classes="ce-details-btn", size="sm")
-                                details_btn.click(make_opener(ev["id"]), found_state, opens)
+                                details_btn.click(make_opener(ev["id"]), found_state, opens) \
+                                    .then(fill_summary, [selected_state, found_state], details_box,
+                                          show_progress="hidden")
                         if len(found) > limit:
                             more_btn = gr.Button(f"Show {min(PAGE, len(found) - limit)} more", elem_id="ce-more")
                             more_btn.click(lambda n: n + PAGE, limit_state, limit_state)
@@ -1332,7 +1351,8 @@ with gr.Blocks(title=TITLE) as demo:
                          list_inputs, list_outputs)
         demo.load(None, None, saved_box,
                   js="() => { try { return localStorage.getItem('hf-saved') || '[]'; } catch (e) { return '[]'; } }")
-        pin_box.change(open_from_pin, [pin_box, found_state], opens)
+        pin_box.change(open_from_pin, [pin_box, found_state], opens) \
+            .then(fill_summary, [selected_state, found_state], details_box, show_progress="hidden")
         q.change(show_events, list_inputs, list_outputs, trigger_mode="always_last", show_progress="hidden")
         share_btn.click(None, None, None, js="""() => {
           const open = document.querySelector("#ce-drawer .ce-details[data-id]");
@@ -1344,7 +1364,8 @@ with gr.Blocks(title=TITLE) as demo:
           if (navigator.clipboard && window.isSecureContext) navigator.clipboard.writeText(url).then(done, () => prompt("Copy this link", url));
           else prompt("Copy this link", url);
         }""")
-        demo.load(open_from_link, found_state, opens)
+        demo.load(open_from_link, found_state, opens) \
+            .then(fill_summary, [selected_state, found_state], details_box, show_progress="hidden")
         near_btn.click(None, None, coords, js="""() => new Promise(done => {
           if (!navigator.geolocation) return done("");
           navigator.geolocation.getCurrentPosition(
