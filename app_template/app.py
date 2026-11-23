@@ -172,9 +172,10 @@ def best_scores(user, found):
         return {}
     try:
         return eligibility.best_fit(user, found, accounts.fit_checks(user["id"]), ask=ask_gemma)
-    except Exception as error:
-        gr.Warning("Best fit is not available right now: " + gemma_client.describe_error(error))
-        return {}
+    except Exception:
+        # Google busy or down: rank by a quick keyword match instead of showing nothing
+        gr.Info("Gemma is busy, so this is a quick match for now. Try again in a minute for the AI ranking.")
+        return eligibility.quick_fit(user, found)
 
 
 def rank_best(user, found):

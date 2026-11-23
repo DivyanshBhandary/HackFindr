@@ -363,6 +363,22 @@ def best_fit(user, evs, feedback=(), ask=None):
     return result
 
 
+def quick_fit(user, evs):
+    """Best fit without Gemma (used when Google is busy): keyword overlap with the student's skills
+    and interests, plus distance. Same shape as best_fit; never cached, so Gemma is tried again next time."""
+    want = _words(user.get("skills")) | _words(user.get("interests"))
+    result = {}
+    for e in candidates(user, evs):
+        text = _words(" ".join(str(e.get(k) or "") for k in ("title", "description", "requirements", "details_text")))
+        hits = sorted(want & text)[:3]
+        km = e.get("distance_km")
+        score = 40 + 12 * len(want & text) + (10 if km is None else max(0, 10 - km // 60))
+        where = "online, so no travel" if km is None else f"{km} km away"
+        why = (f"Mentions {', '.join(hits)}; " if hits else "") + where
+        result[e["id"]] = (int(min(score, 90)), why[:1].upper() + why[1:])
+    return result
+
+
 if __name__ == "__main__":
     n = read_all()
     print(f"Done: read {n} events.")
