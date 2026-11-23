@@ -26,6 +26,7 @@ import gradio as gr
 
 import accounts
 import auth
+import eligibility
 import events
 import gemma_client
 from harness.tools import filter_events
@@ -47,7 +48,7 @@ FETCH_CHOICES = [
     ("Fetch 1000 events", 1000),
 ]
 DEFAULT_FETCH_COUNT = 100
-CHIPS = ["All", "Saved", "Hackathons", "Workshops", "Free", "This week", "Open to 1st year"]
+CHIPS = ["All", "Saved", "I can join", "Hackathons", "Workshops", "Free", "This week", "Open to 1st year"]
 PAGE = 24             # cards shown at first; "Show more" adds this many again
 RADIUS_CHOICES = [("50 km", 50), ("150 km", 150), ("300 km", 300), ("600 km", 600), ("1000 km", 1000), ("2000 km", 2000)]
 # Every event type belongs to one of four colour groups, used for pins, thumbnails and labels.
@@ -130,6 +131,8 @@ FIRST_YEAR = re.compile(r"1st|first[- ]year|all years|any year|freshers?", re.IG
 def chip_match(ev, chip, saved=()):
     if chip == "Saved":
         return ev["id"] in saved
+    if chip == "I can join":
+        return ev.get("_elig", [""])[0] == "yes"
     if chip == "Hackathons":
         return ev.get("type") in ("hackathon", "ideathon")
     if chip == "Workshops":
@@ -147,17 +150,42 @@ def chip_match(ev, chip, saved=()):
     return True
 
 
-def find_events(city, radius, chip, sort, saved=(), query=""):
-    """Offline events near the city first, then online ones, filtered by the chip and the title search."""
+def find_events(city, radius, chip, sort, saved=(), query="", user=None):
+    """Offline events near the city first, then online ones, filtered by the chip and the title search.
+    For a signed-in student each event also gets _elig (can they join?) and, for "Best for you", _fit."""
     lat, lon, near, online = filter_events(city, int(radius))
-    found = [e for e in near + online if chip_match(e, chip, saved)]
+    found = [e for e in eligibility.annotate(user, near + online) if chip_match(e, chip, saved)]
     words = str(query or "").lower().split()
     if words:   # every word must appear in the title or organiser
         text = lambda e: (str(e.get("title") or "") + " " + str(e.get("organiser") or "")).lower()
         found = [e for e in found if all(w in text(e) for w in words)]
     if sort == "Closing soon":
         found.sort(key=lambda e: days_left(e) if days_left(e) is not None else 9999)
+    if sort == "Best for you" and lat is not None:
+        found = rank_best(user, found)
     return lat, lon, found
+
+
+def best_scores(user, found):
+    """Gemma's Best fit scores for this student, {} if it can't run (no profile, error)."""
+    if not eligibility.has_profile(user):
+        return {}
+    try:
+        return eligibility.best_fit(user, found, accounts.fit_checks(user["id"]), ask=ask_gemma)
+    except Exception as error:
+        gr.Warning("Best fit is not available right now: " + gemma_client.describe_error(error))
+        return {}
+
+
+def rank_best(user, found):
+    """Best fit order: Gemma's scores first, highest on top; unscored events keep their order below."""
+    if not eligibility.has_profile(user):
+        gr.Info("Sign in and fill in your profile to see the events that suit you best.")
+        return found
+    scores = best_scores(user, found)
+    found = [{**e, "_fit": list(scores[e["id"]])} if e["id"] in scores else e for e in found]
+    found.sort(key=lambda e: -(e.get("_fit") or [-1])[0])
+    return found
 
 
 # ---------- HTML pieces ----------
@@ -239,10 +267,37 @@ def card_html(ev):
     summary = ev.get("description")
     summary_html = f'<div class="ce-summary">{esc(summary)}</div>' if summary else ""
     star = f'<button class="ce-star" data-id="{esc(ev["id"])}" aria-label="Save this event">★</button>'
+    fit = ev.get("_fit")
+    fit_html = f'<div class="ce-fit-line"><b>{fit[0]}%</b> {esc(fit[1])}</div>' if fit else ""
     return (f'{thumb_html(ev)}<div class="ce-card-body"><div class="ce-card-top">{type_html(ev)}{badge}</div>'
             f'<div class="ce-card-title">{esc(ev["title"])}</div>'
-            f'<div class="ce-meta">{meta_line(ev, with_closes=False)}</div>{summary_html}'
-            f'<div class="ce-tags">{tags_html(ev)}</div></div>{star}<span class="ce-chev" aria-hidden="true">›</span>')
+            f'<div class="ce-meta">{meta_line(ev, with_closes=False)}</div>{summary_html}{fit_html}'
+            f'<div class="ce-tags">{elig_html(ev)}{tags_html(ev)}</div></div>{star}<span class="ce-chev" aria-hidden="true">›</span>')
+
+
+ELIG_LOOK = {"yes": ("✅ Eligible", "yes"), "no": ("❌ Not eligible", "no"), "check": ("❓ Check details", "check")}
+
+
+def elig_html(ev):
+    """The eligibility tag on a card: the label, then the reason when there is one."""
+    status, reason = (ev.get("_elig") or ["", ""])[:2]
+    if status not in ELIG_LOOK:
+        return ""
+    label, cls = ELIG_LOOK[status]
+    text = f"{label} · {reason}" if reason else label
+    return f'<span class="ce-tag elig {cls}" title="{esc(reason)}">{esc(text)}</span>'
+
+
+def top_html(found):
+    """'Top 5 for you this week' row, from the events that have a Best fit score."""
+    top = sorted((e for e in found if e.get("_fit")), key=lambda e: -e["_fit"][0])[:5]
+    if not top:
+        return ""
+    items = "".join(f'<button class="ce-top-item" data-id="{esc(e["id"])}"><b>{e["_fit"][0]}%</b>'
+                    f'<span class="ce-top-title">{esc(e["title"])}</span>'
+                    f'<span class="ce-top-why">{esc(e["_fit"][1])}</span></button>' for e in top)
+    return (f'<div class="ce-top"><div class="ce-top-label">⭐ Top 5 for you this week</div>'
+            f'<div class="ce-top-row">{items}</div></div>')
 
 
 def stats_html(found):
@@ -408,20 +463,41 @@ def saved_ids(saved):
     return {str(i) for i in ids} if isinstance(ids, list) else set()
 
 
-def show_events(city, radius, chip, sort, fetch_count=None, saved="[]", query="", *args):
+def show_events(city, radius, chip, sort, fetch_count=None, saved="[]", query="", request: gr.Request = None):
     """Redraw the map, the card list and the deadline strip."""
-    lat, lon, found = find_events(city, radius, chip, sort, saved_ids(saved), query)
+    user = auth.current_user(request) if request is not None else None
+    if sort == "Best for you" and limit_message(request):
+        sort = "Nearest"
+    lat, lon, found = find_events(city, radius, chip, sort, saved_ids(saved), query, user)
     if lat is None:
         return (f"<p class='ce-error'>Couldn't find the city “{esc(city)}”. Check the spelling or try a bigger city nearby.</p>",
                 [], stats_html([]), PAGE, "")
     return map_html(lat, lon, int(radius), found), found, stats_html(found), PAGE, deadline_strip(found)
 
 
-def refresh(city, radius, chip, sort, fetch_count=DEFAULT_FETCH_COUNT, saved="[]", query="", *args):
+def refresh(city, radius, chip, sort, fetch_count=DEFAULT_FETCH_COUNT, saved="[]", query="",
+            request: gr.Request = None):
     if not PUBLIC:   # on the website a background job fetches, so visitors cannot overload the sources
         events.refresh_events(limit=int(fetch_count))  # live fetch with selected event count
+        eligibility.start_background()                  # Gemma reads the new events' rules
         gr.Info("Live events fetched.")
-    return show_events(city, radius, chip, sort, fetch_count, saved, query)
+    return show_events(city, radius, chip, sort, fetch_count, saved, query, request)
+
+
+def redraw_if_saved(city, radius, chip, sort, fetch_count=None, saved="[]", query="", request: gr.Request = None):
+    """A star click only needs a redraw when the Saved chip is showing."""
+    if chip != "Saved":
+        return (gr.skip(),) * 5
+    return show_events(city, radius, chip, sort, fetch_count, saved, query, request)
+
+
+def top_for_you(found, request: gr.Request = None):
+    """The 'Top 5 for you' row above the list: Best fit over the events on screen (cached per day)."""
+    user = auth.current_user(request)
+    if not eligibility.has_profile(user) or not found or limit_message(request):
+        return ""
+    scores = best_scores(user, found)
+    return top_html([{**e, "_fit": list(scores[e["id"]])} for e in found if e["id"] in scores])
 
 
 def ics_file(ev):
@@ -616,9 +692,14 @@ def fit_check(me, event_id, request: gr.Request = None):
         return "Open an event first.", me
     prompt = f"Event (JSON): {json.dumps(facts, ensure_ascii=False)}\nStudent: {me}"
     try:
-        return ask_gemma(prompt, FIT_RULE), me
+        answer = ask_gemma(prompt, FIT_RULE)
     except Exception as error:
         return gemma_client.describe_error(error), me
+    user = auth.current_user(request)
+    verdict = next((v for v in ("Not a fit", "Good fit", "Maybe") if v.lower() in answer[:60].lower()), "")
+    if user and verdict:      # Best fit learns from what the student checked
+        accounts.add_fit_check(user["id"], event_id, facts.get("title") or "", verdict)
+    return answer, me
 
 
 TEAM_RULE = ("Write a short, friendly WhatsApp message (under 70 words) from a student inviting friends to form a "
@@ -747,10 +828,10 @@ def save_poster(title, ev_type, when, mode, city, eligibility, requirements, lin
                 map_city, radius, chip, sort, fetch_count=None, saved="[]", query="", request: gr.Request = None):
     """Save the (possibly edited) poster event to events.json and redraw."""
     if not title.strip():
-        return "The event needs a title.", *show_events(map_city, radius, chip, sort, fetch_count, saved, query)
+        return "The event needs a title.", *show_events(map_city, radius, chip, sort, fetch_count, saved, query, request)
     blocked = limit_message(request, "poster")
     if blocked:
-        return blocked, *show_events(map_city, radius, chip, sort, fetch_count, saved, query)
+        return blocked, *show_events(map_city, radius, chip, sort, fetch_count, saved, query, request)
     title, city = title[:150], city[:100]
     eligibility, requirements = eligibility[:500], requirements[:500]
     ev_mode = "online" if mode.strip().lower() == "online" else "offline"
@@ -766,7 +847,7 @@ def save_poster(title, ev_type, when, mode, city, eligibility, requirements, lin
     events.add_event(ev)
     warn = "" if ev["lat"] or ev_mode == "online" else " (city not found, so no map marker)"
     return f"Added: {ev['title']} ({ev_mode}, {ev['city'] or 'no city'}){warn}", \
-        *show_events(map_city, radius, chip, sort, fetch_count, saved, query)
+        *show_events(map_city, radius, chip, sort, fetch_count, saved, query, request)
 
 
 # ---------- look ----------
@@ -927,7 +1008,7 @@ HEAD = """<style>
   });
   // "Closing this week" strip: a tap opens that event, the same way a map pin does
   document.addEventListener("click", function (e) {
-    var b = e.target.closest && e.target.closest(".ce-dl[data-id]");
+    var b = e.target.closest && e.target.closest(".ce-dl[data-id], .ce-top-item[data-id]");
     if (!b) return;
     var box = document.querySelector("#ce-pin-id textarea");
     if (box) { box.value = b.dataset.id + "|" + Date.now(); box.dispatchEvent(new Event("input", { bubbles: true })); }
@@ -1159,6 +1240,23 @@ button.ce-details-btn { position: absolute !important; inset: 0; width: 100%; he
               -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
 .ce-tags { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 9px; align-items: center; }
 .ce-tag { border-radius: 999px; padding: 2px 9px; font-size: 11.5px; font-weight: 500; background: var(--ce-inner); color: var(--ce-muted); }
+.ce-tag.elig.yes { background: var(--ce-work-bg); color: var(--ce-work); font-weight: 600; }
+.ce-tag.elig.no { background: var(--ce-hot-bg); color: var(--ce-hot); font-weight: 600; }
+.ce-tag.elig.check { font-weight: 600; }
+.ce-fit-line { font-size: 12.5px; color: var(--ce-text); margin-top: 4px; }
+.ce-fit-line b { color: var(--ce-accent); margin-right: 4px; }
+#ce-top-box { padding: 0 !important; background: transparent !important; border: none !important; }
+.ce-top { margin: 4px 0 6px; }
+.ce-top-label { font-size: 11px; font-weight: 700; letter-spacing: .05em; text-transform: uppercase;
+                color: var(--ce-muted); margin-bottom: 6px; }
+.ce-top-row { width: 0; min-width: 100%; display: flex; gap: 8px; overflow-x: auto; scrollbar-width: none; padding-bottom: 2px; }
+.ce-top-item { flex: 0 0 200px; text-align: left; border: 1px solid var(--ce-border); border-radius: 12px;
+               background: var(--ce-card); color: var(--ce-text); padding: 8px 10px; cursor: pointer;
+               display: flex; flex-direction: column; gap: 2px; font: inherit; }
+.ce-top-item:hover { border-color: var(--ce-accent); }
+.ce-top-item b { color: var(--ce-accent); font-size: 13px; }
+.ce-top-title { font-weight: 600; font-size: 13px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.ce-top-why { font-size: 11.5px; color: var(--ce-muted); display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
 .ce-tag.free { background: var(--ce-work-bg); color: var(--ce-work); }
 .ce-tag.src.poster { background: var(--ce-comp-bg); color: var(--ce-comp); }
 .ce-tag.type.hack { background: var(--ce-hack-bg); color: var(--ce-hack); } .ce-tag.type.work { background: var(--ce-work-bg); color: var(--ce-work); }
@@ -1408,9 +1506,10 @@ with gr.Blocks(title=TITLE) as demo:
                 with gr.Column(scale=5, elem_id="ce-list-col", min_width=320):
                     q = gr.Textbox(placeholder="Search titles, e.g. AI or IIT", show_label=False,
                                    container=False, elem_id="ce-q", max_length=80)
+                    top_box = gr.HTML("", elem_id="ce-top-box")   # "Top 5 for you this week"
                     with gr.Row(elem_id="ce-list-head"):
                         count = gr.HTML(FIRST_COUNT, elem_id="ce-count")
-                        sort = gr.Radio(["Nearest", "Closing soon"], value="Nearest", show_label=False,
+                        sort = gr.Radio(["Nearest", "Closing soon", "Best for you"], value="Nearest", show_label=False,
                                         elem_id="ce-sort", container=False, scale=0)
 
                     @gr.render(inputs=[found_state, selected_state, limit_state])
@@ -1502,8 +1601,7 @@ with gr.Blocks(title=TITLE) as demo:
         # The day/night switch runs only in the browser and is remembered (see HEAD).
         theme_btn.click(None, js=THEME_JS)
         # a star click only needs a redraw when the Saved chip is showing
-        saved_box.change(lambda *a: show_events(*a) if a[2] == "Saved" else (gr.skip(),) * len(list_outputs),
-                         list_inputs, list_outputs)
+        saved_box.change(redraw_if_saved, list_inputs, list_outputs)
         # signed in: the browser's stars and the account's are merged once, then every star click is copied over
         demo.load(None, None, saved_box,
                   js="() => { try { return localStorage.getItem('hf-saved') || '[]'; } catch (e) { return '[]'; } }") \
@@ -1511,10 +1609,15 @@ with gr.Blocks(title=TITLE) as demo:
             .then(None, saved_box, None,
                   js="(v) => { try { localStorage.setItem('hf-saved', v || '[]'); } catch (e) {} }")
         saved_box.change(store_saved, [saved_box, synced_state], None, show_progress="hidden")
-        demo.load(load_account, None, [signin_box, profile_btn, profile_title] + profile_boxes)
+        # signed in: redraw with eligibility tags, then fill the "Top 5 for you" row (one Gemma call a day)
+        demo.load(load_account, None, [signin_box, profile_btn, profile_title] + profile_boxes) \
+            .then(show_events, list_inputs, list_outputs, show_progress="hidden") \
+            .then(top_for_you, found_state, top_box, show_progress="hidden")
         profile_btn.click(lambda: (gr.update(visible=True), ""), None, [profile_panel, p_status])
         profile_close.click(lambda: gr.update(visible=False), None, profile_panel)
-        p_save.click(save_profile, profile_boxes, [p_status, profile_btn, profile_title])
+        p_save.click(save_profile, profile_boxes, [p_status, profile_btn, profile_title]) \
+            .then(show_events, list_inputs, list_outputs, show_progress="hidden") \
+            .then(top_for_you, found_state, top_box, show_progress="hidden")
         p_delete.click(delete_account, p_confirm, [p_status, profile_btn]) \
             .success(None, None, None, js="() => { try { localStorage.removeItem('hf-saved'); } catch (e) {} "
                                        "setTimeout(() => location.href = '/?signed_out=1', 1500); }")
@@ -1564,6 +1667,7 @@ if __name__ == "__main__":
     # share=True would put your app on the public internet. Do not.
     if PUBLIC:
         events.start_auto_refresh()
+    eligibility.start_background()   # Gemma reads eligibility rules for events it has not read yet
     demo.queue(max_size=40)      # extra visitors wait in line instead of overloading the app
     # Gradio runs inside a small FastAPI app that adds /login, /auth and /logout (see auth.py).
     import uvicorn

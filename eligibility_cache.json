@@ -1,0 +1,382 @@
+{
+  "unstop-48d1eecb": {
+    "hash": "e28deb2e1537",
+    "rules": {
+      "audience": [],
+      "open_to_all": false,
+      "degrees": [],
+      "branches": [],
+      "team_min": 2,
+      "team_max": 4,
+      "women_only": false,
+      "states": [],
+      "fee": false,
+      "note": "Online preliminary round followed by an offline final round in Coimbatore.",
+      "by": "gemma"
+    },
+    "at": 1795439075.8643517
+  },
+  "unstop-60e13afe": {
+    "hash": "2aa52ff2df2b",
+    "rules": {
+      "audience": [
+        "ug1",
+        "ug2",
+        "ug3",
+        "ug4",
+        "ug5",
+        "pg"
+      ],
+      "open_to_all": true,
+      "degrees": [],
+      "branches": [],
+      "team_min": 1,
+      "team_max": 4,
+      "women_only": false,
+      "states": [],
+      "fee": false,
+      "note": "3-day virtual hackathon for student builders.",
+      "by": "gemma"
+    },
+    "at": 1795439075.8643677
+  },
+  "unstop-0ee397e1": {
+    "hash": "ad3c72060dd9",
+    "rules": {
+      "audience": [
+        "ug1",
+        "ug2",
+        "ug3",
+        "ug4",
+        "ug5",
+        "pg"
+      ],
+      "open_to_all": true,
+      "degrees": [],
+      "branches": [],
+      "team_min": 2,
+      "team_max": 5,
+      "women_only": false,
+      "states": [],
+      "fee": false,
+      "note": "Every team must have at least one member interested in content creation.",
+      "by": "gemma"
+    },
+    "at": 1795439075.8643796
+  },
+  "unstop-dd622e7b": {
+    "hash": "dedf1580338c",
+    "rules": {
+      "audience": [
+        "ug1",
+        "ug2",
+        "ug3",
+        "ug4",
+        "ug5",
+        "pg"
+      ],
+      "open_to_all": true,
+      "degrees": [],
+      "branches": [],
+      "team_min": 2,
+      "team_max": 4,
+      "women_only": false,
+      "states": [],
+      "fee": false,
+      "note": "48-hour online hackathon focusing on AI-powered solutions.",
+      "by": "gemma"
+    },
+    "at": 1795439075.8643892
+  },
+  "unstop-6091878b": {
+    "hash": "63065e9f844c",
+    "rules": {
+      "audience": [
+        "ug1",
+        "ug2",
+        "ug3",
+        "ug4",
+        "ug5",
+        "pg"
+      ],
+      "open_to_all": true,
+      "degrees": [],
+      "branches": [],
+      "team_min": 1,
+      "team_max": 1,
+      "women_only": false,
+      "states": [],
+      "fee": true,
+      "note": "Individual competition for college students and AI enthusiasts.",
+      "by": "gemma"
+    },
+    "at": 1795439075.864396
+  },
+  "unstop-e8973b6e": {
+    "hash": "bcf3d924cc31",
+    "rules": {
+      "audience": [
+        "ug1",
+        "ug2",
+        "ug3",
+        "ug4",
+        "ug5",
+        "pg"
+      ],
+      "open_to_all": false,
+      "degrees": [],
+      "branches": [],
+      "team_min": 2,
+      "team_max": 4,
+      "women_only": false,
+      "states": [
+        "Odisha"
+      ],
+      "fee": true,
+      "note": "Exclusively for students from colleges located in Odisha.",
+      "by": "gemma"
+    },
+    "at": 1795439075.8644025
+  },
+  "unstop-d7c07888": {
+    "hash": "832fdcc7244d",
+    "rules": {
+      "audience": [
+        "ug1",
+        "ug2",
+        "ug3",
+        "ug4",
+        "ug5",
+        "pg"
+      ],
+      "open_to_all": true,
+      "degrees": [],
+      "branches": [],
+      "team_min": 1,
+      "team_max": 2,
+      "women_only": false,
+      "states": [],
+      "fee": false,
+      "note": "International online hackathon with an offline final round.",
+      "by": "gemma"
+    },
+    "at": 1795439075.86441
+  },
+  "unstop-51fcf851": {
+    "hash": "f4f93402cfc0",
+    "rules": {
+      "audience": [
+        "ug1",
+        "ug2",
+        "ug3",
+        "ug4",
+        "ug5",
+        "pg"
+      ],
+      "open_to_all": true,
+      "degrees": [],
+      "branches": [],
+      "team_min": 2,
+      "team_max": 4,
+      "women_only": false,
+      "states": [],
+      "fee": false,
+      "note": "36-hour offline hackathon.",
+      "by": "gemma"
+    },
+    "at": 1795439075.8644178
+  },
+  "unstop-9ae4b6d1": {
+    "hash": "2be394d869b0",
+    "rules": {
+      "audience": [],
+      "open_to_all": false,
+      "degrees": [],
+      "branches": [],
+      "team_min": 1,
+      "team_max": 4,
+      "women_only": false,
+      "states": [],
+      "fee": false,
+      "note": "",
+      "by": "gemma"
+    },
+    "at": 1795439319.8729975
+  },
+  "unstop-5ecb2191": {
+    "hash": "ed5c5a2beb5c",
+    "rules": {
+      "audience": [
+        "ug1",
+        "ug2",
+        "ug3",
+        "ug4",
+        "ug5",
+        "pg"
+      ],
+      "open_to_all": false,
+      "degrees": [],
+      "branches": [],
+      "team_min": 2,
+      "team_max": 4,
+      "women_only": false,
+      "states": [
+        "Telangana"
+      ],
+      "fee": true,
+      "note": "Exclusively for students in Telangana.",
+      "by": "gemma"
+    },
+    "at": 1795439319.8730156
+  },
+  "unstop-ccdcc327": {
+    "hash": "23f05c74d2bb",
+    "rules": {
+      "audience": [
+        "ug1",
+        "ug2",
+        "ug3",
+        "ug4",
+        "ug5",
+        "pg"
+      ],
+      "open_to_all": false,
+      "degrees": [],
+      "branches": [],
+      "team_min": 2,
+      "team_max": 4,
+      "women_only": false,
+      "states": [
+        "Haryana"
+      ],
+      "fee": true,
+      "note": "Exclusively for students in Haryana.",
+      "by": "gemma"
+    },
+    "at": 1795439319.8730283
+  },
+  "unstop-0218a874": {
+    "hash": "b2af30589bc1",
+    "rules": {
+      "audience": [
+        "ug1",
+        "ug2",
+        "ug3",
+        "ug4",
+        "ug5",
+        "pg"
+      ],
+      "open_to_all": false,
+      "degrees": [],
+      "branches": [],
+      "team_min": 2,
+      "team_max": 4,
+      "women_only": false,
+      "states": [
+        "Delhi"
+      ],
+      "fee": true,
+      "note": "Exclusively for students in Delhi.",
+      "by": "gemma"
+    },
+    "at": 1795439319.8730416
+  },
+  "unstop-be01b0a4": {
+    "hash": "9ff4ff791194",
+    "rules": {
+      "audience": [
+        "ug1",
+        "ug2",
+        "ug3",
+        "ug4",
+        "ug5",
+        "pg"
+      ],
+      "open_to_all": false,
+      "degrees": [],
+      "branches": [],
+      "team_min": 2,
+      "team_max": 4,
+      "women_only": false,
+      "states": [
+        "Tamil Nadu"
+      ],
+      "fee": true,
+      "note": "Exclusively for students in Tamil Nadu.",
+      "by": "gemma"
+    },
+    "at": 1795439319.8730526
+  },
+  "unstop-6ba8fa90": {
+    "hash": "a0fba99134ce",
+    "rules": {
+      "audience": [
+        "ug1",
+        "ug2",
+        "ug3",
+        "ug4",
+        "ug5",
+        "pg"
+      ],
+      "open_to_all": true,
+      "degrees": [],
+      "branches": [],
+      "team_min": 1,
+      "team_max": 4,
+      "women_only": false,
+      "states": [],
+      "fee": true,
+      "note": "Registration fee of ₹1,000 per team.",
+      "by": "gemma"
+    },
+    "at": 1795439319.873062
+  },
+  "unstop-9541c039": {
+    "hash": "85aebbe06082",
+    "rules": {
+      "audience": [
+        "ug1",
+        "ug2",
+        "ug3",
+        "ug4",
+        "ug5",
+        "pg"
+      ],
+      "open_to_all": false,
+      "degrees": [],
+      "branches": [],
+      "team_min": 2,
+      "team_max": 4,
+      "women_only": false,
+      "states": [],
+      "fee": false,
+      "note": "",
+      "by": "gemma"
+    },
+    "at": 1795439319.8730705
+  },
+  "unstop-e33ecea2": {
+    "hash": "e3e0eeb0ef19",
+    "rules": {
+      "audience": [
+        "ug1",
+        "ug2",
+        "ug3",
+        "ug4",
+        "ug5",
+        "pg"
+      ],
+      "open_to_all": false,
+      "degrees": [],
+      "branches": [],
+      "team_min": 3,
+      "team_max": 5,
+      "women_only": false,
+      "states": [],
+      "fee": false,
+      "note": "",
+      "by": "gemma"
+    },
+    "at": 1795439319.8730817
+  }
+}

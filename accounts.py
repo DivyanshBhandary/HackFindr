@@ -43,6 +43,14 @@ CREATE TABLE IF NOT EXISTS saved_events (
     saved_at  REAL NOT NULL,
     PRIMARY KEY (user_id, event_id)
 );
+CREATE TABLE IF NOT EXISTS fit_checks (      -- "Is this for me?" answers, so Best fit learns from them
+    user_id   INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    event_id  TEXT NOT NULL,
+    title     TEXT NOT NULL DEFAULT '',
+    verdict   TEXT NOT NULL,                 -- 'Good fit', 'Maybe' or 'Not a fit'
+    at        REAL NOT NULL,
+    PRIMARY KEY (user_id, event_id)
+);
 """
 
 
@@ -123,6 +131,20 @@ def set_saved(user_id, event_ids):
         con.executemany("INSERT OR IGNORE INTO saved_events (user_id, event_id, saved_at) VALUES (?, ?, ?)",
                         [(user_id, e, now) for e in ids])
     return ids
+
+
+def add_fit_check(user_id, event_id, title, verdict):
+    with connect() as con:
+        con.execute("INSERT OR REPLACE INTO fit_checks (user_id, event_id, title, verdict, at) VALUES (?, ?, ?, ?, ?)",
+                    (user_id, str(event_id)[:120], str(title)[:120], verdict, time.time()))
+
+
+def fit_checks(user_id, limit=8):
+    """[(title, verdict), ...] newest last."""
+    with connect() as con:
+        rows = con.execute("SELECT title, verdict FROM fit_checks WHERE user_id = ? ORDER BY at DESC LIMIT ?",
+                           (user_id, limit)).fetchall()
+    return [(r["title"], r["verdict"]) for r in reversed(rows)]
 
 
 init()

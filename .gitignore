@@ -8,3 +8,4 @@ wheelhouse/
 events_backup.json
 *.tmp
 data/
+bestfit_cache.json
