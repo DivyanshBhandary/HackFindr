@@ -8,12 +8,15 @@
 3. Best fit: Gemma scores up to 25 already-eligible events against the profile in one call,
    cached per student per day.
 
-Run  python eligibility.py  to read every event now instead of in the background.
+Run  python eligibility.py  to read every event now instead of in the background
+(python eligibility.py --gap 15  waits longer between Gemma calls if your key keeps hitting its limits).
 """
 
 import hashlib
 import json
+import os
 import re
+import sys
 import threading
 import time
 from datetime import date
@@ -22,10 +25,14 @@ import events
 
 CACHE_FILE = events.os.path.join(events.DATA_DIR, "eligibility_cache.json")
 FIT_CACHE_FILE = events.os.path.join(events.DATA_DIR, "bestfit_cache.json")
+LOCK_FILE = CACHE_FILE + ".lock"   # only one process reads rules at a time
+LOCK_STALE = 600            # seconds; a reader that has not touched the lock for this long has stopped
 RULES_VERSION = 1           # bump to make Gemma re-read every event
 BATCH = 8                   # events per Gemma call when reading rules
 TOP_N = 25                  # events Gemma ranks for Best fit
 BACKGROUND_GAP = 30        # seconds between background batches, so students' own AI calls come first
+CLI_GAP = 8                 # seconds between batches for  python eligibility.py  (stays under per-minute limits)
+RETRY_MINUTES = (1, 2, 5, 10, 15)   # waits after a failed batch; after the last one, stop until the next start
 _lock = threading.RLock()
 _worker = None
 _last_student_call = 0.0   # when a student last asked for Best fit; background reading waits after it
@@ -163,7 +170,8 @@ def read_batch(evs):
     items = [{"id": e["id"], "title": e.get("title"), "eligibility": e.get("eligibility"),
               "requirements": e.get("requirements"), "team_size": e.get("team_size"), "is_free": e.get("is_free"),
               "details": str(e.get("details_text") or e.get("description") or "")[:900]} for e in evs]
-    reply = gemma_client.ask(RULES_PROMPT + json.dumps(items, ensure_ascii=False))
+    # "minimal" thinking: about 5x faster than the default for this simple reading, and far fewer tokens
+    reply = gemma_client.ask(RULES_PROMPT + json.dumps(items, ensure_ascii=False), thinking="minimal")
     got = {d.get("id"): d for d in _json_list(reply)}
     with _lock:
         cache = _cache()
@@ -174,31 +182,125 @@ def read_batch(evs):
     return len([e for e in evs if e["id"] in got])
 
 
-def read_all(limit=None, log=print, gap=0):
-    """Read every event Gemma has not read yet (or whose text changed).
-    gap > 0 (background): wait between batches, and longer while students are using the AI."""
-    todo = unread(events.load_events())[:limit]
-    done = 0
-    for i in range(0, len(todo), BATCH):
-        if gap:
-            time.sleep(gap)
-            while time.time() - _last_student_call < 90:
-                time.sleep(10)
-        try:
-            done += read_batch(todo[i:i + BATCH])
-        except Exception as error:     # a busy key: stop for now, the next start carries on
-            log(f"Eligibility reading paused: {error}")
-            break
-        log(f"Eligibility rules read for {done} of {len(todo)} events")
+def _claim_lock():
+    """Only one reader at a time, across processes (the app's background reader and python eligibility.py),
+    so the same events are never paid for twice and one reader can't overwrite the other's results."""
+    try:
+        if time.time() - os.path.getmtime(LOCK_FILE) < LOCK_STALE:
+            return False
+    except OSError:
+        pass                       # no lock file: nobody is reading
+    try:
+        with open(LOCK_FILE, "w", encoding="utf-8") as f:
+            f.write(str(os.getpid()))
+        return True
+    except OSError:
+        return False
+
+
+def _touch_lock():
+    try:
+        os.utime(LOCK_FILE)
+    except OSError:
+        pass
+
+
+def _release_lock():
+    try:
+        os.remove(LOCK_FILE)
+    except OSError:
+        pass
+
+
+def _wait(seconds):
+    """Sleep, keeping the lock fresh so other processes can see this reader is still alive."""
+    end = time.time() + seconds
+    while time.time() < end:
+        time.sleep(min(30.0, max(0.0, end - time.time())))
+        _touch_lock()
+
+
+def _daily_quota(error):
+    """True when Google says today's requests are used up: waiting a few minutes won't help."""
+    text = f"{error} {error.__cause__ or ''}".lower()
+    return "perday" in text or "per day" in text
+
+
+def _transient(error):
+    """Google busy ("high demand"), too many requests this minute, or a network hiccup: worth trying again
+    later. A missing or wrong key is not."""
+    import gemma_client
+    for e in (error, error.__cause__):
+        if e is None:
+            continue
+        text = str(e).lower()
+        if (gemma_client._is_busy(e) or gemma_client._is_rate_limit(e) or "google is busy" in text
+                or any(w in text for w in ("timed out", "timeout", "connection", "getaddrinfo", "ssl"))):
+            return True
+    return False
+
+
+def read_all(limit=None, log=print, gap=0, background=False):
+    """Read every event Gemma has not read yet (or whose text changed), BATCH events per Gemma call.
+    gap: seconds between calls, to stay under Gemma's per-minute limits. background: also wait while a
+    student is using the AI, and log only now and then. When Google is busy it waits and tries again
+    (RETRY_MINUTES, then every RETRY_MINUTES[-1] minutes until it works); when today's quota is used up,
+    or the key is wrong, it stops, and the next start carries on."""
+    if not _claim_lock():
+        if not background:
+            log("HackFindr is already reading eligibility rules in another window. Let it finish, or stop it first.")
+            return 0
+        while not _claim_lock():
+            time.sleep(60)
+    done, tried, failures, batches = 0, set(), 0, 0
+    try:
+        while limit is None or len(tried) < limit:
+            # checked again before every call: a restart or the other reader may have read some already
+            todo = [e for e in unread(events.load_events()) if e["id"] not in tried]
+            if not todo:
+                break
+            batch = todo[:BATCH if limit is None else min(BATCH, limit - len(tried))]
+            if gap:
+                _wait(gap)
+            while background and time.time() - _last_student_call < 90:   # a student is using the AI: they go first
+                _wait(10)
+            try:
+                got = read_batch(batch)
+            except Exception as error:
+                if _daily_quota(error) or not _transient(error):
+                    log(f"Eligibility reading stopped for now ({_describe(error).rstrip('.')}). "
+                        f"{len(todo)} events are left; they are read on the next start.")
+                    break
+                minutes = RETRY_MINUTES[min(failures, len(RETRY_MINUTES) - 1)]
+                log(f"Eligibility reading: Gemma is busy, trying again in {minutes} min ({len(todo)} events left).")
+                _wait(minutes * 60)
+                failures += 1
+                continue
+            failures = 0
+            batches += 1
+            tried.update(e["id"] for e in batch)    # an event Gemma skipped is not asked again in this run
+            done += got
+            if not background or batches % 10 == 0 or len(todo) <= len(batch):
+                log(f"Eligibility rules: {done} read in this run, {len(todo) - len(batch)} left.")
+    finally:
+        _release_lock()
     return done
+
+
+def _describe(error):
+    import gemma_client
+    return gemma_client.describe_error(error)
 
 
 def start_background():
     """Read rules for unread events in a background thread (one at a time, once per start)."""
     global _worker
-    if (_worker and _worker.is_alive()) or events.os.environ.get("HACKFINDR_READ_RULES") == "0":
+    if (_worker and _worker.is_alive()) or os.environ.get("HACKFINDR_READ_RULES") == "0":
         return
-    _worker = threading.Thread(target=read_all, kwargs={"log": lambda *_: None, "gap": BACKGROUND_GAP}, daemon=True)
+    if not unread(events.load_events()):
+        return
+    _worker = threading.Thread(target=read_all, kwargs={"log": print, "gap": BACKGROUND_GAP, "background": True},
+                               daemon=True)
     _worker.start()
 
 
@@ -380,5 +482,8 @@ def quick_fit(user, evs):
 
 
 if __name__ == "__main__":
-    n = read_all()
-    print(f"Done: read {n} events.")
+    gap = float(sys.argv[sys.argv.index("--gap") + 1]) if "--gap" in sys.argv else CLI_GAP
+    left = len(unread(events.load_events()))
+    print(f"{left} events need their rules read: about {-(-left // BATCH)} Gemma calls, one every {gap:g}+ seconds.")
+    n = read_all(gap=gap)
+    print(f"Done: read {n} events. {len(unread(events.load_events()))} still unread.")

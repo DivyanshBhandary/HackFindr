@@ -119,6 +119,25 @@ tunnel and set `HACKFINDR_PUBLIC_URL` (see [docs/deployment.md](docs/deployment.
 
 If the internet or an API is down, the app uses the saved `events.json` (offline demo mode).
 To read every event's eligibility rules at once instead of in the background: `python eligibility.py`.
+To clean up the saved events without fetching (tidy titles, Devpost deadlines, missing map pins): `python events.py --repair`.
+
+**Gemma limits.** Every Gemma call is spaced out and retried when Google is busy. If the main model
+(`gemma-4-26b-a4b-it`) is in high demand, the same question goes straight to `gemma-4-31b-it`
+(`GEMMA_FALLBACK_MODEL` in `.env`). When the app is started with `--lan` or `--tunnel`, each visitor gets
+30 Gemma calls an hour and the whole site 500 a day (`HACKFINDR_AI_PER_HOUR`, `HACKFINDR_AI_PER_DAY`), and
+"Fetch new events" only works on the computer running HackFindr.
+
+## Tests
+
+```
+.venv\Scripts\python -m unittest discover -s tests -t . -v
+```
+
+144 tests, about 2 seconds, fully offline: Gemma is faked (a real API call fails the test, so no quota is used),
+no email is sent and no city is looked up. They cover eligibility matching and rule reading (retries, the
+daily-quota stop, one reader at a time), Best fit and its cache, search and filters, HTML escaping, visitor limits,
+every Gemma feature and the fallback model, reminders and the digest, unsubscribe links, sign-in redirects,
+`/share`, `/stats`, and an audit of the real `events.json` and caches.
 
 ## Website mode
 Set `HACKFINDR_PUBLIC=1` (and `GEMINI_API_KEY` as a secret) on the host. This hides manual fetching, refreshes
@@ -144,7 +163,8 @@ a persistent folder if the host has one. Hosting options and the Gemma cost per 
 | `harness/tools.py` | event search and distance filter used by the map |
 | `app.py` | starts `app_template/app.py` (hosting services such as Hugging Face Spaces run this file) |
 | `app_template/app.py` | Gradio UI: map, list, filters, details panel with Gemma helpers, poster upload, profile, feedback |
-| `gemma_client.py` | the starter's Gemma 4 helper (spacing, retries, cache) |
+| `gemma_client.py` | the starter's Gemma 4 helper (spacing, retries, cache, fallback model) |
+| `tests/` | 144 offline tests (see *Tests*) |
 | `skills/hackfindr/SKILL.md` | agent skill describing how to use the tools |
 
 **Stack:** Python, Gradio 6 inside FastAPI (uvicorn), Folium/Leaflet with OpenStreetMap, SQLite, Authlib (Google

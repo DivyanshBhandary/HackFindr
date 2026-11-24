@@ -271,7 +271,8 @@ def send_test(user):
     """'Send me a test email' in the profile: a reminder for the soonest-closing saved event, or the digest."""
     all_events = events.load_events()
     by_id = {e["id"]: e for e in all_events}
-    saved = [by_id[i] for i in accounts.saved_ids(user["id"]) if i in by_id and (_days_left(by_id[i]) or -1) >= 0]
+    open_ = lambda ev: _days_left(ev) is not None and _days_left(ev) >= 0   # 0 = closes today, still worth a reminder
+    saved = [by_id[i] for i in accounts.saved_ids(user["id"]) if i in by_id and open_(by_id[i])]
     if saved:
         ev = min(saved, key=_days_left)
         built = reminder_email(user, ev, _days_left(ev))

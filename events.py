@@ -54,19 +54,34 @@ HEADERS = {"User-Agent": "Mozilla/5.0 (hackfindr student project)"}
 # ---------- small helpers ----------
 def load_json(path, default):
     with _file_lock:
-        if os.path.exists(path):
-            with open(path, encoding="utf-8") as f:
-                return json.load(f)
+        for attempt in range(10):
+            if not os.path.exists(path):
+                return default
+            try:
+                with open(path, encoding="utf-8") as f:
+                    return json.load(f)
+            except PermissionError:      # Windows: another process is swapping the file in right now
+                if attempt == 9:
+                    raise
+                time.sleep(0.05 * (attempt + 1))
     return default
 
 
 def save_json(path, data):
-    """Write to a temporary file, then swap it in, so a crash can never leave half a file."""
+    """Write to a temporary file, then swap it in, so a crash can never leave half a file.
+    On Windows the swap fails while another process is reading the file, so it tries again for a moment."""
     with _file_lock:
         temp = path + ".tmp"
         with open(temp, "w", encoding="utf-8") as f:
             json.dump(data, f, indent=2, ensure_ascii=False)
-        os.replace(temp, path)
+        for attempt in range(20):
+            try:
+                os.replace(temp, path)
+                return
+            except PermissionError:
+                if attempt == 19:
+                    raise
+                time.sleep(0.05 * (attempt + 1))
 
 
 def parse_json(text):
@@ -226,8 +241,11 @@ def unstop_events(items, event_type):
 
 # ---------- Devpost ----------
 def devpost_end(dates):
-    """'Aug 31 - Oct 23, 2026' -> '2026-10-23'. Returns '' if the text looks different."""
-    match = re.search(r"([A-Z][a-z]{2}) (\d{1,2}), (\d{4})\s*$", dates or "")
+    """'Aug 31 - Oct 23, 2026' -> '2026-10-23', 'Oct 05 - 27, 2026' -> '2026-10-27'. '' if the text looks different.
+    Without it an event has no deadline, so it would stay listed after it ends."""
+    text = (dates or "").strip()
+    match = (re.search(r"([A-Z][a-z]{2}) (\d{1,2}), (\d{4})$", text)                      # ends with a full date
+             or re.search(r"([A-Z][a-z]{2}) \d{1,2}\s*-\s*(\d{1,2}), (\d{4})$", text))   # inside one month
     if not match:
         return ""
     try:
@@ -625,12 +643,21 @@ def summarize_details(events):
 
 
 # ---------- main entry points ----------
+def tidy(ev):
+    """Extra spaces, line breaks and stray commas out of the texts people see first."""
+    for key in ("title", "organiser", "city"):
+        if isinstance(ev.get(key), str):
+            ev[key] = " ".join(ev[key].split()).strip(" ,")
+    return ev
+
+
 def add_coords(events):
     for ev in events:
         if ev.get("lat") is None and ev["mode"] == "offline":
-            ev["lat"], ev["lon"] = geocode(ev["city"])
-            if ev["lat"] is None and "," in ev["city"]:   # "Some Hall, Bengaluru" -> try "Bengaluru"
-                ev["lat"], ev["lon"] = geocode(ev["city"].rsplit(",", 1)[1])
+            place = str(ev.get("city") or "").strip(" ,")
+            ev["lat"], ev["lon"] = geocode(place)
+            if ev["lat"] is None and "," in place:   # "Some Hall, Bengaluru" -> try "Bengaluru"
+                ev["lat"], ev["lon"] = geocode(place.rsplit(",", 1)[1].strip())
         elif ev["mode"] != "offline":
             ev["lat"], ev["lon"] = None, None
     return events
@@ -691,7 +718,7 @@ def _refresh(limit=None):
     by_id = {ev["id"]: ev for ev in saved}
     for ev in events:
         by_id[ev["id"]] = ev
-    events = one_per_event(list(by_id.values()))
+    events = one_per_event([tidy(ev) for ev in by_id.values()])
     for ev in events:                # saved Devpost events from older runs may lack the end date
         if ev["source"] == "devpost" and not ev.get("end"):
             ev["end"] = devpost_end(ev.get("start", ""))
@@ -725,6 +752,7 @@ def load_events():
 
 def add_event(ev):
     """Append one event (e.g. from a poster) to events.json and return it."""
+    tidy(ev)
     with _file_lock:
         events = load_events()
         events = [e for e in events if e["id"] != ev["id"]] + [ev]   # same poster twice -> keep one
@@ -735,7 +763,26 @@ def add_event(ev):
 _lock = threading.Lock()   # only one refresh at a time
 
 
+def repair_saved():
+    """Apply the current clean-up rules to the saved events.json without fetching anything new:
+    tidy titles, Devpost deadlines, and map pins for places that failed before (cached, 1 lookup a second)."""
+    with _file_lock:
+        evs = load_json(EVENTS_FILE, [])
+        for ev in evs:
+            tidy(ev)
+            if ev.get("source") == "devpost" and not ev.get("end"):
+                ev["end"] = devpost_end(ev.get("start", ""))
+        add_coords(evs)
+        save_json(EVENTS_FILE, evs)
+    return evs
+
+
 if __name__ == "__main__":
+    import sys
+    if "--repair" in sys.argv:   # python events.py --repair
+        evs = repair_saved()
+        print(len(evs), "saved events repaired,", len([e for e in evs if not is_over(e)]), "still open")
+        raise SystemExit
     evs = refresh_events()
     print(len(evs), "events,", sum(1 for e in evs if e.get("lat")), "with map coordinates")
     for e in evs[:5]:

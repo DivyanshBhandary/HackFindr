@@ -196,6 +196,9 @@ STYLE = ("<style>body{font-family:'Segoe UI',system-ui,sans-serif;background:#f4
 def _share_page(url):
     import html
     u = html.escape(url)
+    # free ngrok links show a warning page to every new phone first; say what to tap
+    tip = ("<p class=muted style='margin:4px 0 0'>If a page from ngrok opens first, tap <b>Visit Site</b>.</p>"
+           if "ngrok" in url else "")
     return (f"<!doctype html><meta charset=utf-8><meta name=viewport content='width=device-width'><title>Try HackFindr</title>"
             f"{STYLE}<body><div class=wrap style='text-align:center;max-width:520px'><div class=card style='padding:32px'>"
             f"<div style='font-size:30px;font-weight:800;color:#6d5dfc'>Hack<span style='color:#1d1b29'>Findr</span></div>"
@@ -203,7 +206,7 @@ def _share_page(url):
             f"check if you can join, and get your best fit, in one place.</p>"
             f"<img src='/qr.png' alt='QR code' style='width:280px;max-width:80%;image-rendering:pixelated'>"
             f"<p style='font-size:18px;font-weight:600;margin:14px 0 4px;word-break:break-all'>{u}</p>"
-            f"<p class=muted>Scan with your phone camera, then tap Feedback and tell us what you think</p></div>"
+            f"<p class=muted>Scan with your phone camera, then tap Feedback and tell us what you think</p>{tip}</div>"
             f"<button class=noprint onclick='print()' style='padding:10px 18px;border-radius:10px;border:0;background:#6d5dfc;"
             f"color:#fff;font-size:15px;cursor:pointer'>Print this page</button></div>")
 

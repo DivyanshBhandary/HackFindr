@@ -37,8 +37,11 @@ from harness.tools import filter_events
 TITLE = "HackFindr"
 # HACKFINDR_PUBLIC=1 turns on the website rules: visitor limits and no manual fetching.
 PUBLIC = os.environ.get("HACKFINDR_PUBLIC") == "1"
-AI_PER_VISITOR_HOUR = 30   # Gemma calls one visitor may use per hour
-AI_PER_DAY = 500           # Gemma calls the whole website may use per day
+# Other people can reach the app (website mode, or started with --lan / --tunnel): each visitor's Gemma use is
+# limited and "Fetch new events" works only on this computer, so the API key and the event sites are not overused.
+GUARDED = PUBLIC or "--tunnel" in sys.argv or "--lan" in sys.argv
+AI_PER_VISITOR_HOUR = int(os.environ.get("HACKFINDR_AI_PER_HOUR", "30") or 30)   # Gemma calls one visitor may use per hour
+AI_PER_DAY = int(os.environ.get("HACKFINDR_AI_PER_DAY", "500") or 500)          # Gemma calls all visitors may use per day
 POSTERS_PER_VISITOR_HOUR = 5
 DEFAULT_CITY = "Raipur"
 DEFAULT_RADIUS = 300  # km shown when the app opens
@@ -63,9 +66,13 @@ ACCENT, HERE = "#6d5dfc", "#ff4d6d"  # radius circle, "you are here" dot
 SOURCE_NAMES = {"unstop": "Unstop", "devpost": "Devpost", "poster": "Unverified poster", "sample": "Sample"}
 
 
-# ---------- website limits (only when PUBLIC) ----------
+# ---------- visitor limits (only when GUARDED) ----------
 
 _usage = defaultdict(list)   # (kind, visitor) -> times of recent uses; kept in memory only
+
+
+class LimitReached(Exception):
+    """A visitor (or the whole site) has used up its Gemma allowance for now."""
 
 
 def visitor_id(request):
@@ -76,9 +83,21 @@ def visitor_id(request):
     return forwarded.split(",")[0].strip() or getattr(request.client, "host", "unknown")
 
 
+def is_local(request):
+    """True for someone using the app on this computer itself, not through the Wi-Fi or the tunnel.
+    ngrok also connects from 127.0.0.1, so the address the browser asked for (the Host header) is checked too."""
+    if request is None:
+        return True
+    host = str(request.headers.get("host") or "").lower()
+    host = host[1:].split("]")[0] if host.startswith("[") else host.split(":")[0]
+    client = str(getattr(request.client, "host", "") or "")
+    return (not request.headers.get("x-forwarded-for") and client in ("127.0.0.1", "::1")
+            and host in ("localhost", "127.0.0.1", "::1"))
+
+
 def limit_message(request, kind="ai", cost=1):
     """Count one use. Returns "" if allowed, or a friendly message if a limit was reached."""
-    if not PUBLIC:
+    if not GUARDED or is_local(request):
         return ""
     now, visitor = time.time(), visitor_id(request)
     per_hour = POSTERS_PER_VISITOR_HOUR if kind == "poster" else AI_PER_VISITOR_HOUR
@@ -153,7 +172,7 @@ def chip_match(ev, chip, saved=()):
     return True
 
 
-def find_events(city, radius, chip, sort, saved=(), query="", user=None):
+def find_events(city, radius, chip, sort, saved=(), query="", user=None, request=None):
     """Offline events near the city first, then online ones, filtered by the chip and the title search.
     For a signed-in student each event also gets _elig (can they join?) and, for "Best for you", _fit."""
     lat, lon, near, online = filter_events(city, int(radius))
@@ -165,29 +184,38 @@ def find_events(city, radius, chip, sort, saved=(), query="", user=None):
     if sort == "Closing soon":
         found.sort(key=lambda e: days_left(e) if days_left(e) is not None else 9999)
     if sort == "Best for you" and lat is not None:
-        found = rank_best(user, found)
+        found = rank_best(user, found, request)
     return lat, lon, found
 
 
-def best_scores(user, found):
-    """Gemma's Best fit scores for this student, {} if it can't run (no profile, error)."""
+def best_scores(user, found, request=None):
+    """Gemma's Best fit scores for this student, {} if there is no profile. A ranking already made today
+    comes from the cache for free; only a real Gemma call counts toward the visitor limits."""
     if not eligibility.has_profile(user):
         return {}
     usage.count("bestfit")
+
+    def ask(prompt, rule):
+        blocked = limit_message(request)
+        if blocked:
+            raise LimitReached(blocked)
+        return ask_gemma(prompt, rule)
     try:
-        return eligibility.best_fit(user, found, accounts.fit_checks(user["id"]), ask=ask_gemma)
+        return eligibility.best_fit(user, found, accounts.fit_checks(user["id"]), ask=ask)
+    except LimitReached as reached:
+        gr.Info(f"{reached} Showing a quick match instead.")
     except Exception:
         # Google busy or down: rank by a quick keyword match instead of showing nothing
         gr.Info("Gemma is busy, so this is a quick match for now. Try again in a minute for the AI ranking.")
-        return eligibility.quick_fit(user, found)
+    return eligibility.quick_fit(user, found)
 
 
-def rank_best(user, found):
+def rank_best(user, found, request=None):
     """Best fit order: Gemma's scores first, highest on top; unscored events keep their order below."""
     if not eligibility.has_profile(user):
         gr.Info("Sign in and fill in your profile to see the events that suit you best.")
         return found
-    scores = best_scores(user, found)
+    scores = best_scores(user, found, request)
     found = [{**e, "_fit": list(scores[e["id"]])} if e["id"] in scores else e for e in found]
     found.sort(key=lambda e: -(e.get("_fit") or [-1])[0])
     return found
@@ -471,18 +499,26 @@ def saved_ids(saved):
 def show_events(city, radius, chip, sort, fetch_count=None, saved="[]", query="", request: gr.Request = None):
     """Redraw the map, the card list and the deadline strip."""
     user = auth.current_user(request) if request is not None else None
-    if sort == "Best for you" and limit_message(request):
-        sort = "Nearest"
-    lat, lon, found = find_events(city, radius, chip, sort, saved_ids(saved), query, user)
+    lat, lon, found = find_events(city, radius, chip, sort, saved_ids(saved), query, user, request)
     if lat is None:
         return (f"<p class='ce-error'>Couldn't find the city “{esc(city)}”. Check the spelling or try a bigger city nearby.</p>",
                 [], stats_html([]), PAGE, "")
     return map_html(lat, lon, int(radius), found), found, stats_html(found), PAGE, deadline_strip(found)
 
 
+def can_fetch(request):
+    """Fetching new events scrapes 8 sites, so only this computer may start it once others can reach the app
+    (on the website a background job fetches instead)."""
+    return not PUBLIC and (not GUARDED or is_local(request))
+
+
+def fetch_panel(request: gr.Request = None):
+    return gr.update(visible=can_fetch(request))
+
+
 def refresh(city, radius, chip, sort, fetch_count=DEFAULT_FETCH_COUNT, saved="[]", query="",
             request: gr.Request = None):
-    if not PUBLIC:   # on the website a background job fetches, so visitors cannot overload the sources
+    if can_fetch(request):
         events.refresh_events(limit=int(fetch_count))  # live fetch with selected event count
         eligibility.start_background()                  # Gemma reads the new events' rules
         gr.Info("Live events fetched.")
@@ -499,9 +535,9 @@ def redraw_if_saved(city, radius, chip, sort, fetch_count=None, saved="[]", quer
 def top_for_you(found, request: gr.Request = None):
     """The 'Top 5 for you' row above the list: Best fit over the events on screen (cached per day)."""
     user = auth.current_user(request)
-    if not eligibility.has_profile(user) or not found or limit_message(request):
+    if not eligibility.has_profile(user) or not found:
         return ""
-    scores = best_scores(user, found)
+    scores = best_scores(user, found, request)
     return top_html([{**e, "_fit": list(scores[e["id"]])} for e in found if e["id"] in scores])
 
 
@@ -573,11 +609,11 @@ def fill_summary(event_id, found, request: gr.Request = None):
     ev = ev or next((e for e in events.load_events() if e["id"] == event_id), None)
     if not needs_summary(ev):
         return gr.skip()
-    note = ""
     blocked = limit_message(request)
+    if blocked:
+        return details_html(ev, f"<p class='ce-caption'>AI summary not available right now. {esc(blocked)}</p>")
+    note = ""
     try:
-        if blocked:
-            raise RuntimeError(blocked)
         ev = events.summarize_one(dict(ev))  # one Gemma call, then saved for everyone
         for i, e in enumerate(found):        # so the card list shows it too
             if e["id"] == event_id:
@@ -623,8 +659,7 @@ def ask_about_event(question, history, event_id, request: gr.Request = None):
                                     "is_free", "description", "eligibility", "requirements", "register_url")}
     # clear names help Gemma find the facts
     facts["team_size"] = ev.get("team_size")
-    facts.update({"registration_opens": ev.get("start"), "registration_closes": ev.get("end"),
-                  "event_ends": ev.get("event_end"), "today": str(date.today())})
+    facts.update(date_facts(ev), today=str(date.today()))
     facts["full_details"] = ev.get("details_text", "")[:1200]  # shorter prompt = faster answer
     chat = "\n".join(f"{m['role']}: {m['content']}" for m in history[-6:])
     prompt = (f"Event details (JSON):\n{json.dumps(facts, ensure_ascii=False)}\n\n"
@@ -639,39 +674,52 @@ def ask_about_event(question, history, event_id, request: gr.Request = None):
     from google.genai import types
     config = types.GenerateContentConfig(system_instruction=rule,
                                          thinking_config=types.ThinkingConfig(thinking_level="minimal"))
-    answer = ""
-    for attempt in (1, 2):   # streaming skips gemma_client's retries, so try once more if Google is busy
-        try:
-            for chunk in gemma_client.get_client().models.generate_content_stream(
-                    model=gemma_client.MODEL, contents=prompt, config=config):
-                answer += chunk.text or ""
-                history[-1]["content"] = answer or "…"
-                yield "", history
-            return
-        except Exception as error:
-            if attempt == 1 and not answer and gemma_client._is_busy(error):
-                time.sleep(2)
-                continue
-            history[-1]["content"] = gemma_client.describe_error(error)
-            yield "", history
-            return
+    answer, last_error = "", None
+    for attempt in (1, 2):   # streaming skips gemma_client's retries: try the fallback model, then both once more
+        for name in gemma_client.models():
+            try:
+                for chunk in gemma_client.get_client().models.generate_content_stream(
+                        model=name, contents=prompt, config=config):
+                    answer += chunk.text or ""
+                    history[-1]["content"] = answer or "…"
+                    yield "", history
+                return
+            except Exception as error:
+                last_error = error
+                if answer or not (gemma_client._is_busy(error) or gemma_client._is_rate_limit(error)):
+                    # half an answer, or a real problem (not just a busy model): say so and stop
+                    history[-1]["content"] = answer + " …" if answer else gemma_client.describe_error(error)
+                    yield "", history
+                    return
+        if attempt == 1:
+            time.sleep(2)
+    history[-1]["content"] = gemma_client.describe_error(last_error)
+    yield "", history
 
 
 def ask_gemma(prompt, rule):
     """One short Gemma answer (not streamed), with the same quick 'minimal' thinking as the chat.
-    Like the chat it skips gemma_client's retries, so it tries once more if Google is busy."""
+    If the main model is busy it asks the fallback Gemma 4 model at once, then tries both once more."""
     from google.genai import types
     config = types.GenerateContentConfig(system_instruction=rule,
                                          thinking_config=types.ThinkingConfig(thinking_level="minimal"))
     for attempt in (1, 2):
         try:
-            reply = gemma_client.get_client().models.generate_content(
-                model=gemma_client.MODEL, contents=prompt, config=config)
+            reply = gemma_client.with_fallback(lambda name: gemma_client.get_client().models.generate_content(
+                model=name, contents=prompt, config=config))
             return (reply.text or "").strip()
         except Exception as error:
-            if attempt == 2 or not gemma_client._is_busy(error):
+            if attempt == 2 or not (gemma_client._is_busy(error) or gemma_client._is_rate_limit(error)):
                 raise
             time.sleep(2)
+
+
+def date_facts(ev):
+    """The dates, named so Gemma can't misread them: on Unstop 'start' is when registration opens, on the
+    other sites it is when the event starts (Devpost gives its submission period as text)."""
+    first = {"unstop": "registration_opens", "devpost": "submission_period"}.get(ev.get("source"), "event_starts")
+    named = {first: ev.get("start"), "registration_closes": ev.get("end"), "event_ends": ev.get("event_end")}
+    return {k: v for k, v in named.items() if v}
 
 
 def event_facts(event_id):
@@ -1599,7 +1647,8 @@ with gr.Blocks(title=TITLE) as demo:
                             more_btn.click(lambda n: n + PAGE, limit_state, limit_state)
                             gr.HTML(f'<div class="ce-note">Showing {limit} of {len(found)} events</div>')
 
-            with gr.Accordion("Live data · fetch new events", open=False, visible=not PUBLIC, elem_id="ce-data"):
+            with gr.Accordion("Live data · fetch new events", open=False, visible=not GUARDED,
+                              elem_id="ce-data") as fetch_box:   # shown on this computer by fetch_panel
                 with gr.Row():
                     fetch_count = gr.Dropdown(FETCH_CHOICES, value=DEFAULT_FETCH_COUNT, show_label=False,
                                               scale=2, min_width=160, elem_id="ce-fetch-count")
@@ -1667,6 +1716,7 @@ with gr.Blocks(title=TITLE) as demo:
         for trigger in (city.submit, radius.change, chip.change, sort.change):   # anonymous usage count
             trigger(count_search, None, None, show_progress="hidden")
         demo.load(count_visit, None, None, show_progress="hidden")
+        demo.load(fetch_panel, None, fetch_box, show_progress="hidden")
         feedback_btn.click(lambda: (gr.update(visible=True), ""), None, [feedback_panel, f_status])
         feedback_close.click(lambda: gr.update(visible=False), None, feedback_panel)
         f_send.click(send_feedback, [f_rating, f_useful, f_comment], [f_status, f_rating, f_comment])
@@ -1793,6 +1843,9 @@ if __name__ == "__main__":
                      favicon_path=str(Path(__file__).resolve().parent.parent / "docs" / "logo" / "hackfindr-icon.svg"))
     sign_in = {"google": "Google sign-in is on.", "demo": "Demo sign-in is on (no Google keys in .env)."}
     print(sign_in.get(auth.sign_in_mode(), "Sign-in is off."))
+    if GUARDED:
+        print(f"Other visitors: Gemma limited to {AI_PER_VISITOR_HOUR} calls an hour each and {AI_PER_DAY} a day in "
+              "total; 'Fetch new events' only works on this computer.")
     print(f"QR code page for your demo table: http://127.0.0.1:{port}/share")
     print(f"Usage and feedback stats (keep this link private): http://127.0.0.1:{port}/stats?key={usage.stats_key()}")
     tunnel = start_tunnel(port) if "--tunnel" in sys.argv else None   # kept in a variable so it stays open

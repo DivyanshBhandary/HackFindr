@@ -47,6 +47,9 @@ def _number(name, default):
 
 # Settings. You can change any of them in your .env file.
 MODEL = os.environ.get("GEMMA_MODEL") or "gemma-4-26b-a4b-it"
+# When Google says the main model is in high demand (error 503) or gets too many requests (429), the same
+# question goes straight to this other Gemma 4 model (limits are per model). GEMMA_FALLBACK_MODEL= turns it off.
+FALLBACK_MODEL = os.environ.get("GEMMA_FALLBACK_MODEL", "gemma-4-31b-it").strip()
 MIN_SECONDS_BETWEEN_CALLS = _number("MIN_SECONDS_BETWEEN_CALLS", 4)
 SOFT_LIMIT = int(_number("GEMMA_SOFT_LIMIT", 1000))
 USE_CACHE = os.environ.get("GEMMA_CACHE", "1") != "0"
@@ -86,8 +89,8 @@ def _make_config(system, thinking):
     settings = {}
     if system:
         settings["system_instruction"] = system
-    if thinking:
-        settings["thinking_config"] = types.ThinkingConfig(thinking_level="high")
+    if thinking:   # True means "high"; a level such as "minimal" answers much faster
+        settings["thinking_config"] = types.ThinkingConfig(thinking_level=thinking if isinstance(thinking, str) else "high")
     return types.GenerateContentConfig(**settings)
 
 
@@ -197,11 +200,27 @@ def _text(response):
     return response.text or "(The model sent back no text. Try asking again.)"
 
 
+def models():
+    """The models to try, in order: the main one, then the fallback (if set)."""
+    return [MODEL] + ([FALLBACK_MODEL] if FALLBACK_MODEL and FALLBACK_MODEL != MODEL else [])
+
+
+def with_fallback(call):
+    """Run call(model) with the main model. If Google says it is busy or rate-limited, try the fallback
+    model straight away; any other error (or the fallback's own error) is raised as usual."""
+    names = models()
+    for i, name in enumerate(names):
+        try:
+            return call(name)
+        except Exception as error:
+            if i == len(names) - 1 or not (_is_busy(error) or _is_rate_limit(error)):
+                raise
+
+
 def generate_raw(contents, config=None):
     """Make one call and return the full response object (the harness and script 05 use this)."""
-    return _call_api(
-        lambda: get_client().models.generate_content(model=MODEL, contents=contents, config=config)
-    )
+    return _call_api(lambda: with_fallback(
+        lambda name: get_client().models.generate_content(model=name, contents=contents, config=config)))
 
 
 # ---------- the three helpers you will use ----------
@@ -230,9 +249,8 @@ def ask_with_image(image_path, prompt, system=None):
     def upload_and_ask():
         client = get_client()
         my_file = client.files.upload(file=str(image_path))  # send the picture to Google
-        return client.models.generate_content(
-            model=MODEL, contents=[my_file, prompt], config=_make_config(system, False)
-        )
+        return with_fallback(lambda name: client.models.generate_content(
+            model=name, contents=[my_file, prompt], config=_make_config(system, False)))
 
     response = _call_api(upload_and_ask)
     text = _text(response)
@@ -262,12 +280,14 @@ def describe_error(error):
     if isinstance(error, MissingKeyError):
         return str(error)
     text = str(error)
-    low = text.lower()
+    low = f"{text} {error.__cause__ or ''}".lower()   # after 3 retries the real error is the cause
     if isinstance(error, ModuleNotFoundError):
         return "A package is missing. Fix: activate your virtual environment, then run: pip install -r requirements.txt"
-    if _is_rate_limit(error):
+    if "high demand" in low:
+        return "Gemma is in high demand on Google's side right now. Try again in a minute."
+    if _is_rate_limit(error) or "429" in low or "resource_exhausted" in low:
         return "Too many requests. Wait a minute and try again. Do not share one key between people."
-    if _is_busy(error):
+    if _is_busy(error) or "google is busy" in low or "unavailable" in low:
         return "Google had a problem on its side. Wait a minute and try again."
     if "404" in low or "not found" in low:
         return f"Model not found. Check the model name (we use '{MODEL}') and GEMMA_MODEL in your .env."

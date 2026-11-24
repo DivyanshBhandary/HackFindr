@@ -50,7 +50,7 @@ may also apply. Token sizes are measured from HackFindr's real prompts (about 4 
 | **Total** |  | **≈ 6,000 / 1,300** |
 
 **1,000 daily active students ≈ 6 M tokens in + 1.3 M out ≈ $1.30 a day ≈ $40 a month.**
-That is about **4 paise ($0.0013) per student per day**.
+That is about **$0.0013 (roughly 11 paise) per student per day**.
 
 ### Why it stays cheap
 
