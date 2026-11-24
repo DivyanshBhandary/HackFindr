@@ -28,7 +28,8 @@ It is built with **Gemma 4 (`gemma-4-26b-a4b-it`) through the Gemini API** (`goo
 
 ![screenshot](docs/screenshot.png)
 
-Presentation: [docs/HackFindr_presentation.pptx](docs/HackFindr_presentation.pptx)
+Presentation: [docs/HackFindr_presentation.pptx](docs/HackFindr_presentation.pptx) ·
+Problem and solution (PDF): [docs/HackFindr-Problrm-Solution.pdf](docs/HackFindr-Problrm-Solution.pdf)
 
 ## Features
 
