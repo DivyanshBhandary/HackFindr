@@ -390,8 +390,40 @@ def has_profile(user):
 
 # ---------- Best fit ----------
 
+# Short forms students type, spelled out so "AI" and "artificial intelligence" match each other.
+SHORT_FORMS = {"ai": "artificial intelligence", "ml": "machine learning", "dl": "deep learning",
+               "genai": "generative artificial intelligence", "llm": "large language model",
+               "nlp": "natural language processing", "ui": "user interface design",
+               "ux": "user experience design", "ar": "augmented reality", "vr": "virtual reality",
+               "iot": "internet of things", "dsa": "data structures algorithms"}
+KEEP_SHORT = set(SHORT_FORMS) | {"c#"}
+# Filler words that appear in almost every event, so they would match everything.
+STOP_WORDS = set("""and the for with you your are will all can this that from our has have its into not who
+which etc also any more open new get one two way per via out use using about like love interested
+working work building build skills skill interests interest""".split())
+
+
 def _words(text):
-    return {w for w in re.findall(r"[a-z][a-z+#.]{1,}", str(text or "").lower()) if len(w) > 2}
+    found = set()
+    for w in re.findall(r"[a-z][a-z0-9+#.]*", str(text or "").lower()):
+        w = w.rstrip(".")                       # "healthcare." at the end of a sentence is still "healthcare"
+        if w in SHORT_FORMS:
+            found |= {w, *SHORT_FORMS[w].split()}
+        elif (len(w) > 2 or w in KEEP_SHORT) and w not in STOP_WORDS:
+            found.add(w)
+    return found - STOP_WORDS
+
+
+def _nice_hits(hits):
+    """Shared words for a reason line: 'AI' instead of 'ai, artificial, intelligence'."""
+    hits = set(hits)
+    out = []
+    for short, long in SHORT_FORMS.items():
+        parts = set(long.split()) | {short}
+        if short in hits or set(long.split()) <= hits:
+            out.append(short.upper() if len(short) <= 3 else short)
+            hits -= parts
+    return out + sorted(hits)
 
 
 def prescore(user, ev):
@@ -472,7 +504,7 @@ def quick_fit(user, evs):
     result = {}
     for e in candidates(user, evs):
         text = _words(" ".join(str(e.get(k) or "") for k in ("title", "description", "requirements", "details_text")))
-        hits = sorted(want & text)[:3]
+        hits = _nice_hits(want & text)[:3]
         km = e.get("distance_km")
         score = 40 + 12 * len(want & text) + (10 if km is None else max(0, 10 - km // 60))
         where = "online, so no travel" if km is None else f"{km} km away"

@@ -272,5 +272,32 @@ class BestFitTest(unittest.TestCase):
         self.assertIn("python", got["ev-raipur"][1].lower())
 
 
+class KeywordWordsTest(unittest.TestCase):
+    def test_short_forms_match_spelled_out_words(self):
+        self.assertTrue({"artificial", "intelligence"} <= eligibility._words("AI, ML"))
+        self.assertTrue({"machine", "learning"} <= eligibility._words("ai, ml"))
+        self.assertIn("ai", eligibility._words("Build with artificial intelligence. Or AI."))
+        self.assertTrue({"user", "experience", "design"} <= eligibility._words("UI/UX"))
+        self.assertIn("c#", eligibility._words("C#, C++"))
+        self.assertIn("c++", eligibility._words("C#, C++"))
+
+    def test_full_stops_and_filler_words_are_ignored(self):
+        self.assertEqual(eligibility._words("I love AI and the web."),
+                         {"ai", "artificial", "intelligence", "web"})
+        self.assertNotIn("open", eligibility._words("Registrations open for all"))
+        self.assertIn("node.js", eligibility._words("Node.js."))
+
+    def test_ai_profile_finds_ai_event(self):
+        user = {"skills": "", "interests": "AI, ML"}
+        ai_event = {"title": "GenAI Sprint", "description": "Build with artificial intelligence and machine learning."}
+        other = {"title": "Quiz night", "description": "A general quiz for all."}
+        self.assertGreater(eligibility.prescore(user, ai_event), eligibility.prescore(user, other))
+
+    def test_reason_line_uses_short_form(self):
+        hits = eligibility._words("AI") & eligibility._words("artificial intelligence, Python")
+        self.assertEqual(eligibility._nice_hits(hits), ["AI"])
+        self.assertEqual(eligibility._nice_hits({"python", "machine", "learning"}), ["ML", "python"])
+
+
 if __name__ == "__main__":
     unittest.main()

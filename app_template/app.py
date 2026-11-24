@@ -1247,6 +1247,11 @@ CSS = """
                                    font-weight: 600; box-shadow: 0 1px 3px rgba(20, 16, 50, .12) !important; }
 #ce-radius { flex: 0 0 auto !important; width: auto !important; overflow: visible !important; }
 #ce-radius input[type=radio], #ce-sort input[type=radio], #ce-chips input[type=radio] { display: none; }
+/* Things you click are not text: no blinking cursor inside them, even with the browser's caret browsing (F7) on */
+.gradio-container button, .gradio-container label, .gradio-container [role=button], .gradio-container [role=tab],
+.gradio-container [role=radio] { -webkit-user-select: none; user-select: none; caret-color: transparent; }
+.gradio-container input, .gradio-container textarea, .gradio-container [contenteditable=true] {
+  -webkit-user-select: text; user-select: text; caret-color: auto; }   /* text boxes sit inside labels: keep their cursor */
 
 /* header buttons */
 .ce-spacer { flex: 1 1 0 !important; min-width: 0 !important; }
@@ -1273,7 +1278,11 @@ CSS = """
                   border: 1px solid var(--ce-border) !important; background: var(--ce-card) !important;
                   color: var(--ce-text) !important; font-weight: 600; }
 #ce-profile-btn:hover { border-color: var(--ce-accent) !important; }
-#ce-profile-actions { align-items: center !important; gap: 14px !important; }
+#ce-profile-actions { align-items: center !important; gap: 12px !important; flex-wrap: wrap !important; }
+#ce-profile-actions > button, #ce-profile-actions > .block { flex: 0 0 auto !important; width: auto !important;
+  min-width: 0 !important; white-space: nowrap !important; padding: 10px 18px !important; border-radius: 12px !important;
+  line-height: 1.2 !important; }
+@media (max-width: 520px) { #ce-profile-actions > button { flex: 1 1 100% !important; } }
 .ce-signout { color: var(--ce-muted) !important; font-size: 14px; text-decoration: underline; }
 #ce-delete { border: 1px solid var(--ce-border) !important; border-radius: 14px !important; margin-top: 6px; }
 
